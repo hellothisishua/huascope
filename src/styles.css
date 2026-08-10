@@ -555,10 +555,19 @@ textarea { resize: vertical; min-height: 80px; }
 
 .year-bar-fill {
   height: 100%;
-  background: var(--morandi-sage);
   border-radius: 4px;
   transition: width 0.4s ease;
 }
+
+/* 年份莫兰迪色 - 交替使用不同莫兰迪色 */
+.year-bar:nth-child(1) .year-bar-fill { background: var(--morandi-rose); }
+.year-bar:nth-child(2) .year-bar-fill { background: var(--morandi-sage); }
+.year-bar:nth-child(3) .year-bar-fill { background: var(--morandi-blue); }
+.year-bar:nth-child(4) .year-bar-fill { background: var(--morandi-lavender); }
+.year-bar:nth-child(5) .year-bar-fill { background: var(--morandi-terracotta); }
+.year-bar:nth-child(6) .year-bar-fill { background: var(--morandi-slate); }
+.year-bar:nth-child(7) .year-bar-fill { background: var(--morandi-mauve); }
+.year-bar:nth-child(8) .year-bar-fill { background: var(--morandi-cream); }
 
 .year-bar-num { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 500; }
 

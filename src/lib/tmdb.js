@@ -53,8 +53,11 @@ export async function getMovieCredits(id) {
 }
 
 export function formatMovie(raw) {
-  const director = raw.credits?.crew?.find(c => c.job === 'Director')?.name || '';
-  const cast = (raw.credits?.cast?.slice(0, 5) || []).map(c => c.name);
+  // 提取导演（可能有多个）
+  const directors = (raw.credits?.crew?.filter(c => c.job === 'Director') || []).map(c => c.name);
+  const director = directors.join('、');
+  // 提取演员（前10位主要演员）
+  const cast = (raw.credits?.cast?.slice(0, 10) || []).map(c => c.name);
 
   return {
     id: raw.id,

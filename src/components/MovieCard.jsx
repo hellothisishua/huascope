@@ -1,14 +1,26 @@
-import { posterUrl } from '../lib/tmdb';
-
-const STATUS_MAP = {
-  want: { label: '想看', cls: 'status-want', icon: '🔖' },
-  watching: { label: '在看', cls: 'status-watching', icon: '▶️' },
-  watched: { label: '看过', cls: 'status-watched', icon: '✅' },
-};
-
-const STARS = [1, 2, 3, 4, 5];
+import { useState } from 'react';
+import { getMovie, formatMovie } from '../lib/tmdb';
+import { updateMovieDb } from '../lib/store.jsx';
+import { useAuth } from '../lib/store.jsx';
 
 export default function MovieCard({ entry, onClick, onStatusChange, isDetail, onClose, onUpdate, onRemove }) {
+  const { user } = useAuth();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    if (!user || refreshing) return;
+    setRefreshing(true);
+    try {
+      const detail = await getMovie(entry.id);
+      const movie = formatMovie(detail);
+      await updateMovieDb(user.id, entry.id, { movie });
+      onUpdate({ movie });
+    } catch (e) {
+      console.error('refresh failed:', e);
+    }
+    setRefreshing(false);
+  };
+
   const { movie, status, rating } = entry;
   const st = STATUS_MAP[status];
 
@@ -18,7 +30,7 @@ export default function MovieCard({ entry, onClick, onStatusChange, isDetail, on
       <div className="overlay" role="dialog">
         <div className="overlay-backdrop" onClick={onClose}></div>
         <div className="modal detail-modal">
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose}>x</button>
 
           {/* Header area */}
           <div className="detail-header" style={movie.backdrop ? {
@@ -62,6 +74,17 @@ export default function MovieCard({ entry, onClick, onStatusChange, isDetail, on
                 <p className="detail-cast">{movie.cast.join('、')}</p>
               </div>
             )}
+
+            {/* Refresh Button */}
+            <div className="detail-section">
+              <button 
+                className="btn btn-ghost btn-sm" 
+                onClick={handleRefresh}
+                disabled={refreshing}
+              >
+                {refreshing ? '更新中...' : '🔄 更新电影信息'}
+              </button>
+            </div>
 
             {/* Status */}
             <div className="detail-section">

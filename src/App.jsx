@@ -7,6 +7,7 @@ import MovieCard from './components/MovieCard';
 import FilterBar from './components/FilterBar';
 import PosterWall from './components/PosterWall';
 import YearSummary from './components/YearSummary';
+import MoviesChart from './components/MoviesChart';
 import RandomPick from './components/RandomPick';
 import ShareModal from './components/ShareModal';
 import AuthScreen from './components/AuthScreen';
@@ -220,7 +221,7 @@ export default function App() {
         )}
 
         {view === VIEWS.stats && (
-          <YearSummary movies={movies} />
+          <MoviesChart movies={movies} />
         )}
       </main>
 

@@ -75,15 +75,16 @@ export default function MovieCard({ entry, onClick, onStatusChange, isDetail, on
               </div>
             )}
 
-            {/* Refresh Button */}
+            {/* Refresh Button - 旧电影信息可能不全，点击重新获取 */}
             <div className="detail-section">
               <button 
-                className="btn btn-ghost btn-sm" 
+                className="btn btn-ghost btn-sm refresh-btn" 
                 onClick={handleRefresh}
                 disabled={refreshing}
               >
                 {refreshing ? '更新中...' : '🔄 更新电影信息'}
               </button>
+              <p className="refresh-hint">旧电影演员/导演可能不全，点击从TMDB重新获取</p>
             </div>
 
             {/* Status */}

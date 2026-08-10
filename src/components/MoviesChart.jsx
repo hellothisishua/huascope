@@ -1,8 +1,33 @@
 import { useState, useMemo } from 'react';
 import { useAuth } from '../lib/store';
+import { getMovie, formatMovie } from '../lib/tmdb';
+import { updateMovieDb } from '../lib/store';
 
 export default function MoviesChart({ movies }) {
   const { user } = useAuth();
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshCount, setRefreshCount] = useState(0);
+
+  const handleRefreshAll = async () => {
+    if (!user || refreshing) return;
+    setRefreshing(true);
+    setRefreshCount(0);
+    
+    for (const movie of movies) {
+      try {
+        const detail = await getMovie(movie.id);
+        const formatted = formatMovie(detail);
+        await updateMovieDb(user.id, movie.id, { movie: formatted });
+        setRefreshCount(prev => prev + 1);
+      } catch (e) {
+        console.error('refresh failed for', movie.title, e);
+      }
+    }
+    
+    setRefreshing(false);
+    // Reload page to get fresh data from DB
+    window.location.reload();
+  };
   const watched = movies.filter(m => m.status === 'watched');
 
   // 按月份统计
@@ -91,6 +116,15 @@ export default function MoviesChart({ movies }) {
             <div className="stat-mini-label">覆盖年份</div>
           </div>
         </div>
+        {/* Refresh All Button */}
+        <button 
+          className="btn btn-ghost btn-sm refresh-all-btn" 
+          onClick={handleRefreshAll}
+          disabled={refreshing}
+        >
+          {refreshing ? `更新中... ${refreshCount}/${movies.length}` : '🔄 更新所有电影信息'}
+        </button>
+        <p className="refresh-hint">如果导演/演员/类型显示不全，点击从TMDB重新获取</p>
       </div>
 
       {/* 月度趋势 */}

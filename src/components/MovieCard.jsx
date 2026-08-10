@@ -3,6 +3,14 @@ import { getMovie, formatMovie } from '../lib/tmdb';
 import { updateMovieDb } from '../lib/store.jsx';
 import { useAuth } from '../lib/store.jsx';
 
+const STATUS_MAP = {
+  want: { label: '想看', cls: 'status-want', icon: '🔖' },
+  watching: { label: '在看', cls: 'status-watching', icon: '▶️' },
+  watched: { label: '看过', cls: 'status-watched', icon: '✅' },
+};
+
+const STARS = [1, 2, 3, 4, 5];
+
 export default function MovieCard({ entry, onClick, onStatusChange, isDetail, onClose, onUpdate, onRemove }) {
   const { user } = useAuth();
   const [refreshing, setRefreshing] = useState(false);

@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
-import { useAuth } from '../lib/store';
+import { useAuth, updateMovieDb } from '../lib/store.jsx';
 import { getMovie, formatMovie } from '../lib/tmdb';
-import { updateMovieDb } from '../lib/store';
 
 export default function MoviesChart({ movies }) {
   const { user } = useAuth();

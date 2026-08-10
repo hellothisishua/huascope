@@ -14,34 +14,47 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+    try {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }).catch(() => {
+        setLoading(false);
+      });
+    } catch {
       setLoading(false);
-    }).catch(() => {
-      setLoading(false);
-    });
+    }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
+    try {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        setUser(session?.user ?? null);
+      });
+      return () => { if (subscription) subscription.unsubscribe(); };
+    } catch {}
   }, []);
 
   const signUp = async (email, password) => {
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) throw error;
+      return data;
+    } catch (e) {
+      throw new Error(e.message || '注册失败');
+    }
   };
 
   const signIn = async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      return data;
+    } catch (e) {
+      throw new Error(e.message || '登录失败');
+    }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try { await supabase.auth.signOut(); } catch {}
   };
 
   return (
@@ -52,56 +65,57 @@ export function AuthProvider({ children }) {
 }
 
 export function useAuth() {
-  return useContext(AuthContext);
+  try { return useContext(AuthContext); } catch { return null; }
 }
 
-// 把 DB 行转成前端用的 entry 格式
+// Safe JSON parse
+function safeJsonParse(val) {
+  if (!val) return null;
+  if (typeof val === 'object') return val;
+  try { return JSON.parse(val); } catch { return null; }
+}
+
+// 把 DB 行转成前端用的 entry 格式 - 极其安全的版本
 function rowToEntry(row) {
   try {
-    let movieData = row.movie_data;
-    if (typeof movieData === 'string') {
-      try {
-        movieData = JSON.parse(movieData);
-      } catch {
-        movieData = { title: '未知电影', id: row.id, overview: '数据损坏' };
-      }
-    }
-    if (!movieData || typeof movieData !== 'object') {
-      movieData = { title: '未知电影', id: row.id, overview: '数据损坏' };
-    }
+    if (!row) return null;
+    
+    const movieData = safeJsonParse(row.movie_data);
+    const movie = movieData || {};
+    
     return {
-      id: row.id,
+      id: row.id || 0,
       status: row.status || 'want',
-      rating: row.rating || 0,
+      rating: Number(row.rating) || 0,
       review: row.review || '',
       addedAt: row.added_at || new Date().toISOString(),
       watchedDate: row.watched_date || '',
       movie: {
-        id: movieData.id || row.id,
-        title: movieData.title || '未知电影',
-        titleCn: movieData.titleCn || movieData.title || '未知电影',
-        originalTitle: movieData.originalTitle || '',
-        year: movieData.year || '—',
-        date: movieData.date || '',
-        poster: movieData.poster || null,
-        backdrop: movieData.backdrop || null,
-        overview: movieData.overview || '暂无简介',
-        rating: movieData.rating || null,
-        runtime: movieData.runtime || 0,
-        genres: Array.isArray(movieData.genres) ? movieData.genres : [],
-        director: movieData.director || '',
-        cast: Array.isArray(movieData.cast) ? movieData.cast : [],
+        id: movie.id || row.id || 0,
+        title: movie.title || movie.titleCn || '未知电影',
+        titleCn: movie.titleCn || movie.title || '未知电影',
+        originalTitle: movie.originalTitle || '',
+        year: movie.year || '—',
+        date: movie.date || '',
+        poster: movie.poster || null,
+        backdrop: movie.backdrop || null,
+        overview: movie.overview || '暂无简介',
+        rating: movie.rating || null,
+        runtime: Number(movie.runtime) || 0,
+        genres: Array.isArray(movie.genres) ? movie.genres : [],
+        director: movie.director || '',
+        cast: Array.isArray(movie.cast) ? movie.cast : [],
       },
     };
   } catch {
     return {
-      id: row.id || 0,
+      id: row?.id || 0,
       status: 'want',
       rating: 0,
       review: '',
       addedAt: new Date().toISOString(),
       watchedDate: '',
-      movie: { id: row.id || 0, title: '数据损坏', overview: '请删除此条目' },
+      movie: { id: row?.id || 0, title: '数据损坏', overview: '请删除此条目重新添加' },
     };
   }
 }
@@ -114,8 +128,12 @@ export async function loadMovies(userId) {
       .select('*')
       .eq('user_id', userId)
       .order('added_at', { ascending: false });
-    if (error) { console.error('load error:', error); return []; }
-    return (data || []).map(rowToEntry);
+    if (error) {
+      console.error('Supabase load error:', error);
+      return [];
+    }
+    if (!data || !Array.isArray(data)) return [];
+    return data.map(rowToEntry).filter(Boolean);
   } catch (e) {
     console.error('loadMovies failed:', e);
     return [];
@@ -123,17 +141,18 @@ export async function loadMovies(userId) {
 }
 
 export async function addMovieDb(userId, movieData, status = 'want') {
-  const row = {
-    id: movieData.id,
-    user_id: userId,
-    status,
-    rating: 0,
-    review: '',
-    watched_date: '',
-    added_at: new Date().toISOString(),
-    movie_data: movieData,
-  };
+  if (!userId || !movieData) return null;
   try {
+    const row = {
+      id: movieData.id,
+      user_id: userId,
+      status: status || 'want',
+      rating: 0,
+      review: '',
+      watched_date: '',
+      added_at: new Date().toISOString(),
+      movie_data: movieData,
+    };
     const { data, error } = await supabase.from('movies').insert(row).select();
     if (error) {
       if (error.code === '23505') {
@@ -144,11 +163,11 @@ export async function addMovieDb(userId, movieData, status = 'want') {
           .eq('user_id', userId)
           .select();
         if (upErr) throw upErr;
-        return rowToEntry(upd[0]);
+        return rowToEntry(upd?.[0]);
       }
       throw error;
     }
-    return rowToEntry(data[0]);
+    return rowToEntry(data?.[0]);
   } catch (e) {
     console.error('addMovieDb failed:', e);
     return null;
@@ -156,14 +175,15 @@ export async function addMovieDb(userId, movieData, status = 'want') {
 }
 
 export async function updateMovieDb(userId, id, updates) {
-  const row = {};
-  if (updates.status !== undefined) row.status = updates.status;
-  if (updates.rating !== undefined) row.rating = updates.rating;
-  if (updates.review !== undefined) row.review = updates.review;
-  if (updates.watchedDate !== undefined) row.watched_date = updates.watchedDate;
-  if (updates.movie) row.movie_data = updates.movie;
-
+  if (!userId || !id) return null;
   try {
+    const row = {};
+    if (updates?.status !== undefined) row.status = updates.status;
+    if (updates?.rating !== undefined) row.rating = updates.rating;
+    if (updates?.review !== undefined) row.review = updates.review;
+    if (updates?.watchedDate !== undefined) row.watched_date = updates.watchedDate;
+    if (updates?.movie) row.movie_data = updates.movie;
+
     const { data, error } = await supabase
       .from('movies')
       .update(row)
@@ -171,7 +191,7 @@ export async function updateMovieDb(userId, id, updates) {
       .eq('user_id', userId)
       .select();
     if (error) throw error;
-    return data ? rowToEntry(data[0]) : null;
+    return data?.[0] ? rowToEntry(data[0]) : null;
   } catch (e) {
     console.error('updateMovieDb failed:', e);
     return null;
@@ -179,6 +199,7 @@ export async function updateMovieDb(userId, id, updates) {
 }
 
 export async function removeMovieDb(userId, id) {
+  if (!userId || !id) return;
   try {
     const { error } = await supabase.from('movies').delete().eq('id', id).eq('user_id', userId);
     if (error) throw error;
@@ -203,15 +224,4 @@ export function decodeShare(encoded) {
       return { id: Number(id), status, rating: Number(rating) };
     }).filter(e => e.id > 0);
   } catch { return []; }
-}
-
-// Clear local storage and session
-export function clearAllData() {
-  try {
-    localStorage.clear();
-    sessionStorage.clear();
-    document.cookie.split(';').forEach(c => {
-      document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
-    });
-  } catch {}
 }

@@ -34,8 +34,22 @@ export default function App() {
   useEffect(() => {
     if (user) {
       setLoading(true);
-      loadMovies(user.id).then(data => { setMovies(data); setLoading(false); })
-        .catch(() => setLoading(false));
+      loadMovies(user.id)
+        .then(data => {
+          // Validate data before setting
+          if (Array.isArray(data)) {
+            setMovies(data);
+          } else {
+            console.warn('loadMovies returned non-array:', data);
+            setMovies([]);
+          }
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error('loadMovies failed:', err);
+          setMovies([]);
+          setLoading(false);
+        });
     } else {
       setMovies([]);
       setLoading(false);
@@ -48,8 +62,13 @@ export default function App() {
       const detail = await getMovie(raw.id);
       const movie = formatMovie(detail);
       const entry = await addMovieDb(user.id, movie, 'want');
-      setMovies(prev => [entry, ...prev.filter(m => m.id !== entry.id)]);
-    } catch (e) { console.error('add failed:', e); alert('添加失败: ' + e.message); }
+      if (entry) {
+        setMovies(prev => [entry, ...prev.filter(m => m.id !== entry.id)]);
+      }
+    } catch (e) {
+      console.error('add failed:', e);
+      alert('添加失败: ' + e.message);
+    }
     setSearchOpen(false);
   }, [user]);
 
@@ -97,26 +116,36 @@ export default function App() {
   }, [user, importCode]);
 
   const allGenres = useMemo(() => {
-    const set = new Set();
-    movies.forEach(m => (m.movie.genres || []).forEach(g => set.add(g)));
-    return [...set].sort();
+    try {
+      const set = new Set();
+      movies.forEach(m => {
+        if (m.movie && Array.isArray(m.movie.genres)) {
+          m.movie.genres.forEach(g => set.add(g));
+        }
+      });
+      return [...set].sort();
+    } catch { return []; }
   }, [movies]);
 
   const allYears = useMemo(() => {
-    const set = new Set(movies.map(m => m.movie.year).filter(y => y !== '—'));
-    return [...set].sort((a, b) => b - a);
+    try {
+      const set = new Set(movies.map(m => m.movie?.year).filter(y => y && y !== '—'));
+      return [...set].sort((a, b) => b - a);
+    } catch { return []; }
   }, [movies]);
 
   const filtered = useMemo(() => {
-    let list = [...movies];
-    if (filterStatus !== 'all') list = list.filter(m => m.status === filterStatus);
-    if (filterYear) list = list.filter(m => m.movie.year === filterYear);
-    if (filterGenre) list = list.filter(m => (m.movie.genres || []).includes(filterGenre));
-    if (sortBy === 'added') list.sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
-    else if (sortBy === 'year') list.sort((a, b) => Number(b.movie.year) - Number(a.movie.year));
-    else if (sortBy === 'rating') list.sort((a, b) => b.rating - a.rating);
-    else if (sortBy === 'title') list.sort((a, b) => a.movie.title.localeCompare(b.movie.title));
-    return list;
+    try {
+      let list = [...movies];
+      if (filterStatus !== 'all') list = list.filter(m => m.status === filterStatus);
+      if (filterYear) list = list.filter(m => m.movie?.year === filterYear);
+      if (filterGenre) list = list.filter(m => m.movie?.genres?.includes(filterGenre));
+      if (sortBy === 'added') list.sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
+      else if (sortBy === 'year') list.sort((a, b) => Number(b.movie?.year) - Number(a.movie?.year));
+      else if (sortBy === 'rating') list.sort((a, b) => b.rating - a.rating);
+      else if (sortBy === 'title') list.sort((a, b) => (a.movie?.title || '').localeCompare(b.movie?.title || ''));
+      return list;
+    } catch { return []; }
   }, [movies, filterStatus, filterYear, filterGenre, sortBy]);
 
   const detailMovie = detailId ? movies.find(m => m.id === detailId) : null;
@@ -248,10 +277,12 @@ export default function App() {
       )}
 
       {detailMovie && (
-        <MovieCard entry={detailMovie} isDetail
+        <MovieCard
+          isDetail
+          entry={detailMovie}
           onClose={() => setDetailId(null)}
-          onUpdate={(u) => handleUpdate(detailId, u)}
-          onRemove={() => handleRemove(detailId)}
+          onUpdate={(updates) => handleUpdate(detailMovie.id, updates)}
+          onRemove={() => handleRemove(detailMovie.id)}
         />
       )}
 
@@ -266,36 +297,28 @@ export default function App() {
         <ShareModal
           movies={movies}
           onClose={() => setShareOpen(false)}
-          encodeFn={encodeShare}
         />
       )}
 
       {importOpen && (
-        <div className="overlay" role="dialog">
+        <div className="overlay">
           <div className="overlay-backdrop" onClick={() => setImportOpen(false)}></div>
           <div className="modal">
-            <button className="modal-close" onClick={() => setImportOpen(false)}>✕</button>
+            <button className="modal-close" onClick={() => setImportOpen(false)}>x</button>
             <h2>📥 导入分享码</h2>
-            <p className="modal-hint">粘贴朋友分享的观影清单码</p>
             <textarea
               className="share-input"
               value={importCode}
               onChange={e => setImportCode(e.target.value)}
-              placeholder="粘贴分享码..."
+              placeholder="粘贴朋友发给你的分享码..."
               rows={4}
             />
-            <button className="btn btn-primary" onClick={handleImport} disabled={!importCode}>
+            <button className="btn btn-primary share-copy-btn" onClick={handleImport}>
               导入
             </button>
           </div>
         </div>
       )}
-
-      {/* Floating petals */}
-      <div className="petal" style={{ left: '10%', animationDelay: '0s' }}>🌸</div>
-      <div className="petal" style={{ left: '30%', animationDelay: '3s' }}>🌺</div>
-      <div className="petal" style={{ left: '60%', animationDelay: '1.5s' }}>🌸</div>
-      <div className="petal" style={{ left: '85%', animationDelay: '5s' }}>🌺</div>
     </div>
   );
 }

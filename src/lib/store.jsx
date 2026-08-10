@@ -65,7 +65,12 @@ export function AuthProvider({ children }) {
 }
 
 export function useAuth() {
-  try { return useContext(AuthContext); } catch { return null; }
+  try { 
+    const ctx = useContext(AuthContext);
+    return ctx || { user: null, loading: false, signUp: async () => {}, signIn: async () => {}, signOut: async () => {} };
+  } catch { 
+    return { user: null, loading: false, signUp: async () => {}, signIn: async () => {}, signOut: async () => {} };
+  }
 }
 
 // Safe JSON parse

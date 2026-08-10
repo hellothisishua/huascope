@@ -1,9 +1,57 @@
 import { createClient } from '@supabase/supabase-js';
+import { useState, useEffect, createContext, useContext } from 'react';
 
 const URL = 'https://oulchvefqobqoikpnowc.supabase.co';
 const KEY = 'sb_publishable_vKytZ6B9BYKnWDe2X3vZtw_LUqDxMFK';
 
 export const supabase = createClient(URL, KEY);
+
+// Auth Context
+const AuthContext = createContext(null);
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const signUp = async (email, password) => {
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) throw error;
+    return data;
+  };
+
+  const signIn = async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    return data;
+  };
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, loading, signUp, signIn, signOut }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  return useContext(AuthContext);
+}
 
 // 把 DB 行转成前端用的 entry 格式
 function rowToEntry(row) {
@@ -17,30 +65,21 @@ function rowToEntry(row) {
   };
 }
 
-// 把前端 entry 转成 DB 行
-function entryToRow(entry) {
-  return {
-    id: entry.id,
-    status: entry.status,
-    rating: entry.rating,
-    review: entry.review || '',
-    added_at: entry.addedAt || new Date().toISOString(),
-    movie_data: entry.movie,
-  };
-}
-
-export async function loadMovies() {
+export async function loadMovies(userId) {
+  if (!userId) return [];
   const { data, error } = await supabase
     .from('movies')
     .select('*')
+    .eq('user_id', userId)
     .order('added_at', { ascending: false });
   if (error) { console.error('load error:', error); return []; }
   return (data || []).map(rowToEntry);
 }
 
-export async function addMovieDb(movieData, status = 'want') {
+export async function addMovieDb(userId, movieData, status = 'want') {
   const row = {
     id: movieData.id,
+    user_id: userId,
     status,
     rating: 0,
     review: '',
@@ -50,11 +89,11 @@ export async function addMovieDb(movieData, status = 'want') {
   const { data, error } = await supabase.from('movies').insert(row).select();
   if (error) {
     if (error.code === '23505') {
-      // duplicate — update instead
       const { data: upd, error: upErr } = await supabase
         .from('movies')
         .update({ movie_data: movieData })
         .eq('id', movieData.id)
+        .eq('user_id', userId)
         .select();
       if (upErr) throw upErr;
       return rowToEntry(upd[0]);
@@ -64,7 +103,7 @@ export async function addMovieDb(movieData, status = 'want') {
   return rowToEntry(data[0]);
 }
 
-export async function updateMovieDb(id, updates) {
+export async function updateMovieDb(userId, id, updates) {
   const row = {};
   if (updates.status !== undefined) row.status = updates.status;
   if (updates.rating !== undefined) row.rating = updates.rating;
@@ -75,17 +114,17 @@ export async function updateMovieDb(id, updates) {
     .from('movies')
     .update(row)
     .eq('id', id)
+    .eq('user_id', userId)
     .select();
   if (error) throw error;
   return data ? rowToEntry(data[0]) : null;
 }
 
-export async function removeMovieDb(id) {
-  const { error } = await supabase.from('movies').delete().eq('id', id);
+export async function removeMovieDb(userId, id) {
+  const { error } = await supabase.from('movies').delete().eq('id', id).eq('user_id', userId);
   if (error) throw error;
 }
 
-// Share encoding (still local, just encodes IDs + status + rating)
 export function encodeShare(movies) {
   const ids = movies.map(m => `${m.id}:${m.status}:${m.rating}`).join(',');
   return btoa(encodeURIComponent(ids));

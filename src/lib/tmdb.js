@@ -56,7 +56,7 @@ export async function searchMovies(query, page = 1) {
 }
 
 export async function getMovie(id) {
-  return tmdb(`/movie/${id}`);
+  return tmdb(`/movie/${id}`, { append_to_response: 'credits' });
 }
 
 export async function getMovieCredits(id) {
@@ -64,6 +64,11 @@ export async function getMovieCredits(id) {
 }
 
 export function formatMovie(raw) {
+  // 提取导演
+  const director = raw.credits?.crew?.find(c => c.job === 'Director')?.name || '';
+  // 提取演员（前5个）
+  const cast = (raw.credits?.cast?.slice(0, 5) || []).map(c => c.name);
+
   return {
     id: raw.id,
     title: raw.title,
@@ -77,7 +82,7 @@ export function formatMovie(raw) {
     rating: raw.vote_average ? raw.vote_average.toFixed(1) : null,
     runtime: raw.runtime || 0,
     genres: (raw.genres || []).map(g => g.name),
-    director: '',
-    cast: [],
+    director,
+    cast,
   };
 }

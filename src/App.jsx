@@ -1,21 +1,20 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import './styles.css';
-import { loadMovies, addMovieDb, updateMovieDb, removeMovieDb, encodeShare, decodeShare } from './lib/store';
+import { loadMovies, addMovieDb, updateMovieDb, removeMovieDb, encodeShare, decodeShare, useAuth } from './lib/store';
 import { searchMovies, getMovie, formatMovie } from './lib/tmdb';
 import SearchModal from './components/SearchModal';
 import MovieCard from './components/MovieCard';
-import MovieDetail from './components/MovieDetail';
 import FilterBar from './components/FilterBar';
 import PosterWall from './components/PosterWall';
 import YearSummary from './components/YearSummary';
 import RandomPick from './components/RandomPick';
 import ShareModal from './components/ShareModal';
+import AuthScreen from './components/AuthScreen';
 
 const VIEWS = { list: 'list', poster: 'poster', stats: 'stats' };
-const PASSWORD = 'hua';
 
 export default function App() {
-  const [authenticated, setAuthenticated] = useState(false);
+  const { user, loading: authLoading } = useAuth();
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState(VIEWS.list);
@@ -29,59 +28,63 @@ export default function App() {
   const [shareOpen, setShareOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [importCode, setImportCode] = useState('');
-  const [pwInput, setPwInput] = useState('');
-  const [pwError, setPwError] = useState(false);
-  const [pwShake, setPwShake] = useState(false);
 
-  // ===== 所有 hooks 必须在每次渲染中按相同顺序调用，放在条件返回之前 =====
-
-  // 登录后才加载数据
+  // 加载当前用户的电影
   useEffect(() => {
-    if (authenticated) {
-      loadMovies().then(data => { setMovies(data); setLoading(false); })
+    if (user) {
+      setLoading(true);
+      loadMovies(user.id).then(data => { setMovies(data); setLoading(false); })
         .catch(() => setLoading(false));
+    } else {
+      setMovies([]);
+      setLoading(false);
     }
-  }, [authenticated]);
+  }, [user]);
 
   const handleAdd = useCallback(async (raw) => {
+    if (!user) return;
     try {
       const detail = await getMovie(raw.id);
       const movie = formatMovie(detail);
-      const entry = await addMovieDb(movie, 'want');
+      const entry = await addMovieDb(user.id, movie, 'want');
       setMovies(prev => [entry, ...prev.filter(m => m.id !== entry.id)]);
     } catch (e) { console.error('add failed:', e); alert('添加失败: ' + e.message); }
     setSearchOpen(false);
-  }, []);
+  }, [user]);
 
   const handleUpdate = useCallback((id, updates) => {
+    if (!user) return;
     setMovies(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
-    updateMovieDb(id, updates).catch(e => console.error('sync failed:', e));
-  }, []);
+    updateMovieDb(user.id, id, updates).catch(e => console.error('sync failed:', e));
+  }, [user]);
 
   const handleRemove = useCallback((id) => {
+    if (!user) return;
     if (!confirm('确定删除这部电影？')) return;
     setMovies(prev => prev.filter(m => m.id !== id));
     setDetailId(null);
-    removeMovieDb(id).catch(e => console.error('remove failed:', e));
-  }, []);
+    removeMovieDb(user.id, id).catch(e => console.error('remove failed:', e));
+  }, [user]);
 
   const handleReset = useCallback(async () => {
+    if (!user) return;
     if (!confirm('确定清空所有观影记录？此操作不可恢复。')) return;
     for (const m of movies) {
-      await removeMovieDb(m.id).catch(() => {});
+      await removeMovieDb(user.id, m.id).catch(() => {});
     }
     setMovies([]);
-  }, [movies]);
+  }, [user, movies]);
 
   const handleImport = useCallback(async () => {
+    if (!user) return;
     const entries = decodeShare(importCode);
     if (entries.length === 0) { alert('无效的分享码'); return; }
     for (const e of entries) {
       try {
         const detail = await getMovie(e.id);
         const movie = formatMovie(detail);
-        const entry = await addMovieDb(movie, e.status);
-        if (e.rating > 0) await updateMovieDb(e.id, { rating: e.rating });
+        const entry = await addMovieDb(user.id, movie, e.status);
+        if (e.rating > 0) await updateMovieDb(user.id, e.id, { rating: e.rating });
         setMovies(prev => {
           const filtered = prev.filter(m => m.id !== entry.id);
           return [{ ...entry, rating: e.rating || 0 }, ...filtered];
@@ -90,7 +93,7 @@ export default function App() {
     }
     setImportOpen(false);
     setImportCode('');
-  }, [importCode]);
+  }, [user, importCode]);
 
   const allGenres = useMemo(() => {
     const set = new Set();
@@ -117,60 +120,46 @@ export default function App() {
 
   const detailMovie = detailId ? movies.find(m => m.id === detailId) : null;
 
-  // ===== 所有 hooks 声明完毕，现在可以条件渲染 =====
-  if (!authenticated) {
-    const handlePwSubmit = (e) => {
-      e.preventDefault();
-      if (pwInput === PASSWORD) {
-        setAuthenticated(true);
-      } else {
-        setPwError(true);
-        setPwShake(true);
-        setTimeout(() => setPwShake(false), 500);
-      }
-    };
+  // 加载中
+  if (authLoading) {
     return (
-      <div className="password-gate">
-        <div className={`password-box ${pwShake ? 'shake' : ''}`}>
-          <div className="password-flower">🌸</div>
-          <h2>HuaScope 万花筒</h2>
-          <p className="password-hint">输入密码查看观影记录</p>
-          <form onSubmit={handlePwSubmit}>
-            <input
-              type="password"
-              value={pwInput}
-              onChange={e => { setPwInput(e.target.value); setPwError(false); }}
-              placeholder="请输入密码..."
-              autoFocus
-            />
-            {pwError && <div className="password-error">密码错误 ✕</div>}
-            <button type="submit" className="btn btn-primary">进入</button>
-          </form>
-        </div>
+      <div className="loading-screen">
+        <div className="loading-flower">🌸</div>
+        <p>加载中...</p>
       </div>
     );
+  }
+
+  // 未登录显示登录界面
+  if (!user) {
+    return <AuthScreen />;
   }
 
   return (
     <div className="app">
       {/* Header */}
       <header className="header">
-        <svg className="header-logo" viewBox="0 0 64 64">
-          <g transform="translate(32,32)">
-            <g><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#e89ab0" opacity="0.9"/></g>
-            <g transform="rotate(60)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#b06ab3" opacity="0.9"/></g>
-            <g transform="rotate(120)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#7b4cc7" opacity="0.9"/></g>
-            <g transform="rotate(180)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#e89ab0" opacity="0.9"/></g>
-            <g transform="rotate(240)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#b06ab3" opacity="0.9"/></g>
-            <g transform="rotate(300)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#7b4cc7" opacity="0.9"/></g>
-            <circle cx="0" cy="0" r="6" fill="#e8c84a"/>
-          </g>
-        </svg>
-        <h1>HuaScope</h1>
-        <span className="header-sub">万花筒 · 我的观影簿</span>
+        <div className="header-left">
+          <svg className="header-logo" viewBox="0 0 64 64">
+            <g transform="translate(32,32)">
+              <g><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#e89ab0" opacity="0.9"/></g>
+              <g transform="rotate(60)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#b06ab3" opacity="0.9"/></g>
+              <g transform="rotate(120)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#7b4cc7" opacity="0.9"/></g>
+              <g transform="rotate(180)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#e89ab0" opacity="0.9"/></g>
+              <g transform="rotate(240)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#b06ab3" opacity="0.9"/></g>
+              <g transform="rotate(300)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#7b4cc7" opacity="0.9"/></g>
+              <circle cx="0" cy="0" r="6" fill="#e8c84a"/>
+            </g>
+          </svg>
+          <div>
+            <h1>HuaScope</h1>
+            <span className="header-sub">万花筒 · {user.email?.split('@')[0] || '我的观影簿'}</span>
+          </div>
+        </div>
         <div className="header-actions">
           <button className="icon-btn" onClick={() => setRandomOpen(true)} title="随机抽一部">🎲</button>
           <button className="icon-btn" onClick={() => setShareOpen(true)} title="分享">🔗</button>
+          <button className="icon-btn" onClick={() => { if(confirm('确定退出登录？')) window.location.reload(); }} title="退出">🚪</button>
         </div>
       </header>
 
@@ -258,8 +247,7 @@ export default function App() {
       )}
 
       {detailMovie && (
-        <MovieDetail
-          entry={detailMovie}
+        <MovieCard entry={detailMovie} isDetail
           onClose={() => setDetailId(null)}
           onUpdate={(u) => handleUpdate(detailId, u)}
           onRemove={() => handleRemove(detailId)}

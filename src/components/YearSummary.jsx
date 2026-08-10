@@ -27,6 +27,29 @@ export default function YearSummary({ movies }) {
   });
   const genreEntries = Object.entries(byGenre).sort((a, b) => b[1] - a[1]).slice(0, 10);
 
+  // 按导演统计
+  const byDirector = {};
+  watched.forEach(m => {
+    const director = m.movie.director;
+    if (director) {
+      if (!byDirector[director]) byDirector[director] = { count: 0, movies: [] };
+      byDirector[director].count++;
+      byDirector[director].movies.push(m);
+    }
+  });
+  const directorEntries = Object.entries(byDirector).sort((a, b) => b[1].count - a[1].count).slice(0, 10);
+
+  // 按演员统计
+  const byActor = {};
+  watched.forEach(m => {
+    (m.movie.cast || []).forEach(actor => {
+      if (!byActor[actor]) byActor[actor] = { count: 0, movies: [] };
+      byActor[actor].count++;
+      byActor[actor].movies.push(m);
+    });
+  });
+  const actorEntries = Object.entries(byActor).sort((a, b) => b[1].count - a[1].count).slice(0, 10);
+
   // 评分分布
   const ratingDist = [0, 0, 0, 0, 0, 0];
   watched.forEach(m => { if (m.rating > 0) ratingDist[m.rating]++; });
@@ -101,6 +124,48 @@ export default function YearSummary({ movies }) {
                     <div className="genre-bar-fill" style={{ width: `${(count / maxG) * 100}%` }}></div>
                   </div>
                   <div className="genre-bar-num">{count}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 导演统计 */}
+      {directorEntries.length > 0 && (
+        <div className="stats-section">
+          <h3>🎬 导演统计</h3>
+          <div className="genre-bars">
+            {directorEntries.map(([d, data]) => {
+              const maxD = Math.max(...directorEntries.map(([, dd]) => dd.count), 1);
+              return (
+                <div key={d} className="genre-bar">
+                  <div className="genre-bar-label">{d}</div>
+                  <div className="genre-bar-track">
+                    <div className="genre-bar-fill" style={{ width: `${(data.count / maxD) * 100}%` }}></div>
+                  </div>
+                  <div className="genre-bar-num">{data.count} 部</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 演员统计 */}
+      {actorEntries.length > 0 && (
+        <div className="stats-section">
+          <h3>🎭 演员统计</h3>
+          <div className="genre-bars">
+            {actorEntries.map(([a, data]) => {
+              const maxA = Math.max(...actorEntries.map(([, dd]) => dd.count), 1);
+              return (
+                <div key={a} className="genre-bar">
+                  <div className="genre-bar-label">{a}</div>
+                  <div className="genre-bar-track">
+                    <div className="genre-bar-fill" style={{ width: `${(data.count / maxA) * 100}%` }}></div>
+                  </div>
+                  <div className="genre-bar-num">{data.count} 部</div>
                 </div>
               );
             })}

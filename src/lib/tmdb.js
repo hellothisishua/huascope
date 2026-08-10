@@ -1,8 +1,8 @@
 const KEY = import.meta.env.VITE_TMDB_KEY;
-// 使用多个备用域名，提高国内访问成功率
+const PROXY = 'https://lingering-mountain-a077.2295655628.workers.dev';
 const BASES = [
+  PROXY + '/api',
   'https://api.themoviedb.org/3',
-  'https://api.tmdb.org/3',
 ];
 let currentBase = 0;
 
@@ -27,14 +27,13 @@ async function tmdb(path, params = {}) {
     return res.json();
   } catch (err) {
     clearTimeout(timeout);
-    // 如果第一个域名失败，尝试备用域名
     if (currentBase === 0) {
       currentBase = 1;
       return tmdb(path, params);
     }
-    currentBase = 0; // reset for next search
+    currentBase = 0;
     if (err.name === 'AbortError') {
-      throw new Error('网络超时，TMDB 可能无法访问，请检查网络或尝试开启 VPN');
+      throw new Error('网络超时，请检查网络或稍后重试');
     }
     throw new Error('网络错误：' + (err.message || '无法连接 TMDB'));
   }
@@ -42,12 +41,12 @@ async function tmdb(path, params = {}) {
 
 export function posterUrl(path, size = 'w342') {
   if (!path) return null;
-  return `https://image.tmdb.org/t/p/${size}${path}`;
+  return `${PROXY}/img/${size}${path}`;
 }
 
 export function backdropUrl(path, size = 'w780') {
   if (!path) return null;
-  return `https://image.tmdb.org/t/p/${size}${path}`;
+  return `${PROXY}/img/${size}${path}`;
 }
 
 export async function searchMovies(query, page = 1) {
@@ -64,9 +63,7 @@ export async function getMovieCredits(id) {
 }
 
 export function formatMovie(raw) {
-  // 提取导演
   const director = raw.credits?.crew?.find(c => c.job === 'Director')?.name || '';
-  // 提取演员（前5个）
   const cast = (raw.credits?.cast?.slice(0, 5) || []).map(c => c.name);
 
   return {

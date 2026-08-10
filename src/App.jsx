@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import './styles.css';
-import { loadMovies, addMovieDb, updateMovieDb, removeMovieDb, encodeShare, decodeShare, useAuth } from './lib/store';
+import { loadMovies, addMovieDb, updateMovieDb, removeMovieDb, encodeShare, decodeShare, useAuth } from './lib/store.jsx';
 import { searchMovies, getMovie, formatMovie } from './lib/tmdb';
 import SearchModal from './components/SearchModal';
 import MovieCard from './components/MovieCard';

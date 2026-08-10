@@ -856,6 +856,22 @@ textarea { resize: vertical; min-height: 80px; }
   color: var(--text);
 }
 
+.share-code-display {
+  background: var(--surface-2);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+.share-code-text {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--morandi-rose);
+  letter-spacing: 0.05em;
+}
+
 .share-stats { font-size: 12px; color: var(--text-dim); margin-bottom: 14px; }
 
 .share-copy-btn { width: 100%; }

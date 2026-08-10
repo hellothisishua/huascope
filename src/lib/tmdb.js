@@ -1,7 +1,5 @@
 const KEY = import.meta.env.VITE_TMDB_KEY;
-
-const BASES = ['https://api.themoviedb.org/3'];
-let currentBase = 0;
+const BASE = 'https://api.themoviedb.org/3';
 
 async function tmdb(path, params = {}) {
   const controller = new AbortController();
@@ -9,14 +7,14 @@ async function tmdb(path, params = {}) {
 
   const buildUrl = (base) => {
     const url = new URL(base + path);
-    if (!isProduction) url.searchParams.set('api_key', KEY);
+    url.searchParams.set('api_key', KEY);
     url.searchParams.set('language', 'zh-CN');
     Object.entries(params).forEach(([k, v]) => { if (v) url.searchParams.set(k, v); });
     return url.toString();
   };
 
   try {
-    const res = await fetch(buildUrl(BASES[currentBase]), {
+    const res = await fetch(buildUrl(BASE), {
       signal: controller.signal,
     });
     clearTimeout(timeout);
@@ -24,11 +22,6 @@ async function tmdb(path, params = {}) {
     return res.json();
   } catch (err) {
     clearTimeout(timeout);
-    if (currentBase === 0 && isProduction) {
-      currentBase = 1;
-      return tmdb(path, params);
-    }
-    currentBase = 0;
     if (err.name === 'AbortError') {
       throw new Error('网络超时，请检查网络或稍后重试');
     }

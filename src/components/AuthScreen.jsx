@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from '../lib/store';
+import { useAuth } from '../lib/store.jsx';
 
 export default function AuthScreen() {
   const { signIn, signUp } = useAuth();

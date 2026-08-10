@@ -1,9 +1,10 @@
 const KEY = import.meta.env.VITE_TMDB_KEY;
-const PROXY = 'https://lingering-mountain-a077.2295655628.workers.dev';
-const BASES = [
-  PROXY + '/api',
-  'https://api.themoviedb.org/3',
-];
+
+const isProduction = import.meta.env.PROD;
+const PROXY = isProduction ? '' : '';
+const BASES = isProduction 
+  ? ['/api/tmdb']
+  : ['https://api.themoviedb.org/3'];
 let currentBase = 0;
 
 async function tmdb(path, params = {}) {
@@ -12,7 +13,7 @@ async function tmdb(path, params = {}) {
 
   const buildUrl = (base) => {
     const url = new URL(base + path);
-    url.searchParams.set('api_key', KEY);
+    if (!isProduction) url.searchParams.set('api_key', KEY);
     url.searchParams.set('language', 'zh-CN');
     Object.entries(params).forEach(([k, v]) => { if (v) url.searchParams.set(k, v); });
     return url.toString();
@@ -27,7 +28,7 @@ async function tmdb(path, params = {}) {
     return res.json();
   } catch (err) {
     clearTimeout(timeout);
-    if (currentBase === 0) {
+    if (currentBase === 0 && isProduction) {
       currentBase = 1;
       return tmdb(path, params);
     }
@@ -41,12 +42,12 @@ async function tmdb(path, params = {}) {
 
 export function posterUrl(path, size = 'w342') {
   if (!path) return null;
-  return `${PROXY}/img/${size}${path}`;
+  return isProduction ? `/api/img?path=/${size}${path}` : `https://image.tmdb.org/t/p/${size}${path}`;
 }
 
 export function backdropUrl(path, size = 'w780') {
   if (!path) return null;
-  return `${PROXY}/img/${size}${path}`;
+  return isProduction ? `/api/img?path=/${size}${path}` : `https://image.tmdb.org/t/p/${size}${path}`;
 }
 
 export async function searchMovies(query, page = 1) {

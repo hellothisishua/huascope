@@ -1,7 +1,6 @@
 const KEY = import.meta.env.VITE_TMDB_KEY;
 
 const isProduction = import.meta.env.PROD;
-const PROXY = isProduction ? '' : '';
 const BASES = isProduction 
   ? ['/api/tmdb']
   : ['https://api.themoviedb.org/3'];
@@ -42,12 +41,12 @@ async function tmdb(path, params = {}) {
 
 export function posterUrl(path, size = 'w342') {
   if (!path) return null;
-  return isProduction ? `/api/img?path=/${size}${path}` : `https://image.tmdb.org/t/p/${size}${path}`;
+  return isProduction ? `/api/img/${size}${path}` : `https://image.tmdb.org/t/p/${size}${path}`;
 }
 
 export function backdropUrl(path, size = 'w780') {
   if (!path) return null;
-  return isProduction ? `/api/img?path=/${size}${path}` : `https://image.tmdb.org/t/p/${size}${path}`;
+  return isProduction ? `/api/img/${size}${path}` : `https://image.tmdb.org/t/p/${size}${path}`;
 }
 
 export async function searchMovies(query, page = 1) {

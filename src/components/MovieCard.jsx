@@ -47,6 +47,22 @@ export default function MovieCard({ entry, onClick, onStatusChange, isDetail, on
               </div>
             )}
 
+            {/* Director */}
+            {movie.director && (
+              <div className="detail-section">
+                <label>导演</label>
+                <p className="detail-director">{movie.director}</p>
+              </div>
+            )}
+
+            {/* Cast */}
+            {(movie.cast || []).length > 0 && (
+              <div className="detail-section">
+                <label>演员</label>
+                <p className="detail-cast">{movie.cast.join('、')}</p>
+              </div>
+            )}
+
             {/* Status */}
             <div className="detail-section">
               <label>状态</label>
@@ -74,6 +90,19 @@ export default function MovieCard({ entry, onClick, onStatusChange, isDetail, on
                 ))}
               </div>
             </div>
+
+            {/* Watched Date */}
+            {status === 'watched' && (
+              <div className="detail-section">
+                <label>观看时间</label>
+                <input
+                  type="date"
+                  className="date-input"
+                  value={entry.watchedDate || ''}
+                  onChange={e => onUpdate({ watchedDate: e.target.value })}
+                />
+              </div>
+            )}
 
             {/* Review */}
             <div className="detail-section">

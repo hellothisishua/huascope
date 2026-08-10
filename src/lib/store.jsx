@@ -61,6 +61,7 @@ function rowToEntry(row) {
     rating: row.rating,
     review: row.review || '',
     addedAt: row.added_at,
+    watchedDate: row.watched_date || '',
     movie: typeof row.movie_data === 'string' ? JSON.parse(row.movie_data) : row.movie_data,
   };
 }
@@ -83,6 +84,7 @@ export async function addMovieDb(userId, movieData, status = 'want') {
     status,
     rating: 0,
     review: '',
+    watched_date: '',
     added_at: new Date().toISOString(),
     movie_data: movieData,
   };
@@ -108,6 +110,7 @@ export async function updateMovieDb(userId, id, updates) {
   if (updates.status !== undefined) row.status = updates.status;
   if (updates.rating !== undefined) row.rating = updates.rating;
   if (updates.review !== undefined) row.review = updates.review;
+  if (updates.watchedDate !== undefined) row.watched_date = updates.watchedDate;
   if (updates.movie) row.movie_data = updates.movie;
 
   const { data, error } = await supabase

@@ -649,6 +649,10 @@ textarea { resize: vertical; min-height: 80px; }
 
 .detail-overview { font-size: 14px; line-height: 1.7; color: var(--text); }
 
+.detail-director { font-size: 14px; color: var(--text); font-weight: 500; }
+
+.detail-cast { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+
 .detail-footer { display: flex; justify-content: space-between; align-items: center; }
 
 .detail-added { font-size: 12px; color: var(--text-faint); }
@@ -865,11 +869,20 @@ textarea { resize: vertical; min-height: 80px; }
   text-align: center;
 }
 
-.share-code-text {
-  font-size: 22px;
-  font-weight: 600;
-  color: var(--morandi-rose);
-  letter-spacing: 0.05em;
+.date-input {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  transition: all 0.2s;
+}
+
+.date-input:focus {
+  border-color: var(--morandi-rose);
+  box-shadow: 0 0 0 3px rgba(198, 165, 165, 0.08);
 }
 
 .share-stats { font-size: 12px; color: var(--text-dim); margin-bottom: 14px; }

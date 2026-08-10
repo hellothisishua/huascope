@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { getMovie, formatMovie } from '../lib/tmdb';
-import { updateMovieDb } from '../lib/store.jsx';
-import { useAuth } from '../lib/store.jsx';
+import { updateMovieDb, useAuth } from '../lib/store.jsx';
 
 const STATUS_MAP = {
   want: { label: '想看', cls: 'status-want', icon: '🔖' },
@@ -11,8 +10,23 @@ const STATUS_MAP = {
 
 const STARS = [1, 2, 3, 4, 5];
 
-export default function MovieCard({ entry, onClick, onStatusChange, isDetail, onClose, onUpdate, onRemove }) {
-  const { user } = useAuth();
+function SafeMovieCard({ entry, ...props }) {
+  // Validate entry before rendering
+  if (!entry || !entry.movie) {
+    return (
+      <div className="movie-card movie-card--error">
+        <div className="movie-card-body">
+          <div className="movie-card-title">数据损坏</div>
+          <div className="movie-card-meta">请删除此条目</div>
+        </div>
+      </div>
+    );
+  }
+  return <MovieCardInner entry={entry} {...props} />;
+}
+
+function MovieCardInner({ entry, onClick, onStatusChange, isDetail, onClose, onUpdate, onRemove }) {
+  const { user } = useAuth() || {};
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = async () => {
@@ -21,8 +35,10 @@ export default function MovieCard({ entry, onClick, onStatusChange, isDetail, on
     try {
       const detail = await getMovie(entry.id);
       const movie = formatMovie(detail);
-      await updateMovieDb(user.id, entry.id, { movie });
-      onUpdate({ movie });
+      if (movie) {
+        await updateMovieDb(user.id, entry.id, { movie });
+        onUpdate({ movie });
+      }
     } catch (e) {
       console.error('refresh failed:', e);
     }
@@ -30,7 +46,7 @@ export default function MovieCard({ entry, onClick, onStatusChange, isDetail, on
   };
 
   const { movie, status, rating } = entry;
-  const st = STATUS_MAP[status];
+  const st = STATUS_MAP[status] || STATUS_MAP.want;
 
   // 详情弹窗模式
   if (isDetail) {
@@ -40,7 +56,6 @@ export default function MovieCard({ entry, onClick, onStatusChange, isDetail, on
         <div className="modal detail-modal">
           <button className="modal-close" onClick={onClose}>x</button>
 
-          {/* Header area */}
           <div className="detail-header" style={movie.backdrop ? {
             backgroundImage: `url(https://image.tmdb.org/t/p/w780${movie.backdrop})`,
             backgroundSize: 'cover', backgroundPosition: 'center'
@@ -51,12 +66,12 @@ export default function MovieCard({ entry, onClick, onStatusChange, isDetail, on
           </div>
 
           <div className="detail-body">
-            <h2 className="detail-title">{movie.title}</h2>
+            <h2 className="detail-title">{movie.title || '未知电影'}</h2>
             {movie.originalTitle && movie.originalTitle !== movie.title && (
               <div className="detail-original">{movie.originalTitle}</div>
             )}
             <div className="detail-meta">
-              <span>{movie.year}</span>
+              <span>{movie.year || '—'}</span>
               {movie.runtime > 0 && <span> · {movie.runtime} 分钟</span>}
               {movie.rating && <span> · ⭐ {movie.rating}</span>}
             </div>
@@ -67,7 +82,6 @@ export default function MovieCard({ entry, onClick, onStatusChange, isDetail, on
               </div>
             )}
 
-            {/* Director */}
             {movie.director && (
               <div className="detail-section">
                 <label>导演</label>
@@ -75,7 +89,6 @@ export default function MovieCard({ entry, onClick, onStatusChange, isDetail, on
               </div>
             )}
 
-            {/* Cast */}
             {(movie.cast || []).length > 0 && (
               <div className="detail-section">
                 <label>演员</label>
@@ -83,7 +96,6 @@ export default function MovieCard({ entry, onClick, onStatusChange, isDetail, on
               </div>
             )}
 
-            {/* Refresh Button - 旧电影信息可能不全，点击重新获取 */}
             <div className="detail-section">
               <button 
                 className="btn btn-ghost btn-sm refresh-btn" 
@@ -95,7 +107,6 @@ export default function MovieCard({ entry, onClick, onStatusChange, isDetail, on
               <p className="refresh-hint">旧电影演员/导演可能不全，点击从TMDB重新获取</p>
             </div>
 
-            {/* Status */}
             <div className="detail-section">
               <label>状态</label>
               <div className="status-options">
@@ -109,7 +120,6 @@ export default function MovieCard({ entry, onClick, onStatusChange, isDetail, on
               </div>
             </div>
 
-            {/* Rating */}
             <div className="detail-section">
               <label>评分</label>
               <div className="star-rating">
@@ -123,7 +133,6 @@ export default function MovieCard({ entry, onClick, onStatusChange, isDetail, on
               </div>
             </div>
 
-            {/* Watched Date */}
             {status === 'watched' && (
               <div className="detail-section">
                 <label>观看时间</label>
@@ -136,26 +145,24 @@ export default function MovieCard({ entry, onClick, onStatusChange, isDetail, on
               </div>
             )}
 
-            {/* Review */}
             <div className="detail-section">
               <label>短评</label>
               <textarea
                 className="review-input"
-                value={entry.review}
+                value={entry.review || ''}
                 onChange={e => onUpdate({ review: e.target.value })}
                 placeholder="写下你的感受..."
                 rows={3}
               />
             </div>
 
-            {/* Overview */}
             <div className="detail-section">
               <label>简介</label>
-              <p className="detail-overview">{movie.overview}</p>
+              <p className="detail-overview">{movie.overview || '暂无简介'}</p>
             </div>
 
             <div className="detail-section detail-footer">
-              <span className="detail-added">添加于 {new Date(entry.addedAt).toLocaleDateString('zh-CN')}</span>
+              <span className="detail-added">添加于 {new Date(entry.addedAt || Date.now()).toLocaleDateString('zh-CN')}</span>
               <button className="btn btn-danger btn-sm" onClick={onRemove}>删除</button>
             </div>
           </div>
@@ -175,9 +182,9 @@ export default function MovieCard({ entry, onClick, onStatusChange, isDetail, on
         )}
       </div>
       <div className="movie-card-body">
-        <div className="movie-card-title">{movie.title}</div>
+        <div className="movie-card-title">{movie.title || '未知电影'}</div>
         <div className="movie-card-meta">
-          <span>{movie.year}</span>
+          <span>{movie.year || '—'}</span>
           {movie.runtime > 0 && <span> · {movie.runtime} 分钟</span>}
           {movie.rating && <span> · TMDB {movie.rating}</span>}
         </div>
@@ -190,7 +197,7 @@ export default function MovieCard({ entry, onClick, onStatusChange, isDetail, on
           <span className={`status-badge ${st.cls}`}>{st.icon} {st.label}</span>
           {rating > 0 && (
             <span className="movie-card-stars">
-              {'★'.repeat(rating)}{'☆'.repeat(5 - rating)}
+              {'★'.repeat(Math.min(rating, 5))}{'☆'.repeat(Math.max(0, 5 - rating))}
             </span>
           )}
         </div>
@@ -198,4 +205,11 @@ export default function MovieCard({ entry, onClick, onStatusChange, isDetail, on
       </div>
     </div>
   );
+}
+
+export default SafeMovieCard;
+
+function posterUrl(path, size = 'w342') {
+  if (!path) return null;
+  return `https://image.tmdb.org/t/p/${size}${path}`;
 }

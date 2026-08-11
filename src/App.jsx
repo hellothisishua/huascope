@@ -15,7 +15,7 @@ import AuthScreen from './components/AuthScreen';
 const VIEWS = { list: 'list', poster: 'poster', stats: 'stats' };
 
 export default function App() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState(VIEWS.list);
@@ -192,7 +192,7 @@ export default function App() {
         <div className="header-actions">
           <button className="icon-btn" onClick={() => setRandomOpen(true)} title="随机抽一部">🎲</button>
           <button className="icon-btn" onClick={() => setShareOpen(true)} title="分享">🔗</button>
-          <button className="icon-btn" onClick={() => { if(confirm('确定退出登录？')) window.location.reload(); }} title="退出">🚪</button>
+          <button className="icon-btn" onClick={() => { if(confirm('确定退出登录？')) signOut(); }} title="退出">🚪</button>
         </div>
       </header>
 

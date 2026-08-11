@@ -186,7 +186,7 @@ export async function addMovieDb(userId, movieData, status = 'want') {
 }
 
 export async function updateMovieDb(userId, id, updates) {
-  if (!userId || !id) return null;
+  if (!userId || !id) throw new Error('Missing userId or id');
   try {
     const row = {};
     if (updates?.status !== undefined) row.status = updates.status;
@@ -202,11 +202,14 @@ export async function updateMovieDb(userId, id, updates) {
       .eq('id', id)
       .eq('user_id', userId)
       .select();
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase update error:', JSON.stringify(error, null, 2));
+      throw new Error(error.message || 'Database update failed');
+    }
     return data?.[0] ? rowToEntry(data[0]) : null;
   } catch (e) {
     console.error('updateMovieDb failed:', e);
-    return null;
+    throw e;
   }
 }
 

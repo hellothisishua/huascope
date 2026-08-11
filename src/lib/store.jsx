@@ -126,7 +126,8 @@ function rowToEntry(row) {
 }
 
 export async function loadMovies(userId) {
-  if (!userId) return [];
+  if (!userId) { console.error('loadMovies: userId is null/undefined'); return []; }
+  console.log('loadMovies: userId =', userId);
   try {
     const { data, error } = await supabase
       .from('movies')
@@ -134,7 +135,7 @@ export async function loadMovies(userId) {
       .eq('user_id', userId)
       .order('added_at', { ascending: false });
     if (error) {
-      console.error('Supabase load error:', error);
+      console.error('Supabase load error:', JSON.stringify(error, null, 2));
       return [];
     }
     if (!data || !Array.isArray(data)) return [];
@@ -146,7 +147,8 @@ export async function loadMovies(userId) {
 }
 
 export async function addMovieDb(userId, movieData, status = 'want') {
-  if (!userId || !movieData) return null;
+  if (!userId || !movieData) { console.error('addMovieDb: missing params', { userId, movieData }); return null; }
+  console.log('addMovieDb: userId =', userId, 'movieId =', movieData.id);
   try {
     const row = {
       id: movieData.id,
@@ -158,8 +160,10 @@ export async function addMovieDb(userId, movieData, status = 'want') {
       added_at: new Date().toISOString(),
       movie_data: movieData,
     };
+    console.log('addMovieDb: inserting row', JSON.stringify(row, null, 2));
     const { data, error } = await supabase.from('movies').insert(row).select();
     if (error) {
+      console.error('Supabase insert error:', JSON.stringify(error, null, 2));
       if (error.code === '23505') {
         const { data: upd, error: upErr } = await supabase
           .from('movies')
@@ -167,14 +171,15 @@ export async function addMovieDb(userId, movieData, status = 'want') {
           .eq('id', movieData.id)
           .eq('user_id', userId)
           .select();
-        if (upErr) throw upErr;
+        if (upErr) { console.error('Update error:', JSON.stringify(upErr, null, 2)); throw upErr; }
         return rowToEntry(upd?.[0]);
       }
       throw error;
     }
+    console.log('addMovieDb: insert success', data?.[0]?.id);
     return rowToEntry(data?.[0]);
   } catch (e) {
-    console.error('addMovieDb failed:', e);
+    console.error('addMovieDb failed:', JSON.stringify(e, null, 2));
     return null;
   }
 }

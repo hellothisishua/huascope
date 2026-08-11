@@ -531,6 +531,8 @@ textarea { resize: vertical; min-height: 80px; }
 .genre-bar:nth-child(6) .genre-bar-fill { background: var(--morandi-slate); }
 .genre-bar:nth-child(7) .genre-bar-fill { background: var(--morandi-mauve); }
 .genre-bar:nth-child(8) .genre-bar-fill { background: var(--morandi-cream); }
+.genre-bar:nth-child(9) .genre-bar-fill { background: #9B8EC4; }
+.genre-bar:nth-child(10) .genre-bar-fill { background: #8FA68F; }
 
 .genre-bar-num { color: var(--text); font-variant-numeric: tabular-nums; font-weight: 500; }
 

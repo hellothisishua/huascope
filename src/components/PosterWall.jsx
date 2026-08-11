@@ -6,19 +6,18 @@ export default function PosterWall({ movies, onClick }) {
   return (
     <div className="poster-wall">
       {movies.map(m => (
-        <button key={m.id} className="poster-item" onClick={() => onClick(m.id)} title={m.movie.title}>
+        <button key={m.id} className="poster-wall-item" onClick={() => onClick(m.id)} title={m.movie.title}>
           {m.movie.poster ? (
-            <img src={posterUrl(m.movie.poster, 'w185')} alt="" className="poster-img" loading="lazy" />
+            <img src={posterUrl(m.movie.poster, 'w342')} alt="" className="poster-wall-img" loading="lazy" />
           ) : (
-            <div className="poster-placeholder">
+            <div className="poster-wall-empty">
               <span>🎬</span>
-              <span className="poster-placeholder-title">{m.movie.title}</span>
             </div>
           )}
-          <div className="poster-overlay">
-            <div className="poster-overlay-title">{m.movie.title}</div>
-            <div className="poster-overlay-year">{m.movie.year}</div>
-            {m.rating > 0 && <div className="poster-overlay-rating">{'★'.repeat(m.rating)}</div>}
+          <div className="poster-wall-overlay">
+            <div className="poster-wall-overlay-title">{m.movie.title}</div>
+            <div className="poster-wall-overlay-year">{m.movie.year}</div>
+            {m.rating > 0 && <div className="poster-wall-overlay-rating">{'★'.repeat(m.rating)}</div>}
           </div>
         </button>
       ))}

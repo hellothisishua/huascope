@@ -290,103 +290,108 @@ export default function App() {
     </>
   );
 
-  // Desktop layout (horizontal with sidebar)
-  const desktopLayout = (
-    <div className="app-desktop">
-      <aside className="sidebar">
-        <div className="sidebar-logo">
-          <svg viewBox="0 0 64 64" width="40" height="40">
-            <g transform="translate(32,32)">
-              <g><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#e89ab0" opacity="0.9"/></g>
-              <g transform="rotate(60)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#b06ab3" opacity="0.9"/></g>
-              <g transform="rotate(120)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#7b4cc7" opacity="0.9"/></g>
-              <g transform="rotate(180)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#e89ab0" opacity="0.9"/></g>
-              <g transform="rotate(240)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#b06ab3" opacity="0.9"/></g>
-              <g transform="rotate(300)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#7b4cc7" opacity="0.9"/></g>
-              <circle cx="0" cy="0" r="6" fill="#e8c84a"/>
-            </g>
-          </svg>
-          <div>
-            <div className="sidebar-title">HuaScope</div>
-            <div className="sidebar-sub">万花筒 · {user.email?.split('@')[0] || '观影簿'}</div>
+  // 检测是否为桌面设备
+  const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 900;
+
+  if (isDesktop) {
+    // Desktop layout (horizontal with sidebar)
+    return (
+      <div className="app-desktop">
+        <aside className="sidebar">
+          <div className="sidebar-logo">
+            <svg viewBox="0 0 64 64" width="40" height="40">
+              <g transform="translate(32,32)">
+                <g><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#e89ab0" opacity="0.9"/></g>
+                <g transform="rotate(60)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#b06ab3" opacity="0.9"/></g>
+                <g transform="rotate(120)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#7b4cc7" opacity="0.9"/></g>
+                <g transform="rotate(180)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#e89ab0" opacity="0.9"/></g>
+                <g transform="rotate(240)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#b06ab3" opacity="0.9"/></g>
+                <g transform="rotate(300)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#7b4cc7" opacity="0.9"/></g>
+                <circle cx="0" cy="0" r="6" fill="#e8c84a"/>
+              </g>
+            </svg>
+            <div>
+              <div className="sidebar-title">HuaScope</div>
+              <div className="sidebar-sub">万花筒 · {user.email?.split('@')[0] || '观影簿'}</div>
+            </div>
           </div>
-        </div>
-        
-        <nav className="sidebar-nav">
-          <div className={`sidebar-nav-item ${view === VIEWS.list ? 'active' : ''}`} onClick={() => setView(VIEWS.list)}>
-            <span className="sidebar-nav-icon">📋</span>
-            <span>电影列表</span>
-          </div>
-          <div className={`sidebar-nav-item ${view === VIEWS.poster ? 'active' : ''}`} onClick={() => setView(VIEWS.poster)}>
-            <span className="sidebar-nav-icon">🖼</span>
-            <span>海报墙</span>
-          </div>
-          <div className={`sidebar-nav-item ${view === VIEWS.stats ? 'active' : ''}`} onClick={() => setView(VIEWS.stats)}>
-            <span className="sidebar-nav-icon">📊</span>
-            <span>统计</span>
-          </div>
-        </nav>
-        
-        <div className="sidebar-actions">
-          <button className="sidebar-action-btn" onClick={() => setRandomOpen(true)}>🎲 随机抽一部</button>
-          <button className="sidebar-action-btn" onClick={() => setShareOpen(true)}>🔗 分享</button>
-          <button className="sidebar-action-btn" onClick={handleExport}>📤 导出</button>
-          <button className="sidebar-action-btn" onClick={() => setImportOpen(true)}>📥 导入</button>
-          <button className="sidebar-action-btn danger" onClick={handleReset}>🗑 清空</button>
-          <button className="sidebar-action-btn danger" onClick={() => signOut()}>🚪 退出登录</button>
-        </div>
-      </aside>
-      
-      <main className="content">
-        <div className="content-header">
-          <h2>
-            {view === VIEWS.list && '📋 电影列表'}
-            {view === VIEWS.poster && '🖼 海报墙'}
-            {view === VIEWS.stats && '📊 统计'}
-          </h2>
-          <button className="btn btn-primary btn-sm" onClick={() => setSearchOpen(true)}>＋ 添加电影</button>
-        </div>
-        
-        <div className="content-body">
-          {view === VIEWS.list && (
-            filtered.length === 0 ? (
-              <div className="empty">
-                <p>🎬 还没有电影记录</p>
-                <p className="empty-sub">点击"添加电影"搜索并添加你的第一部电影</p>
-              </div>
-            ) : (
-              <div className="movie-list movie-list--grid">
-                {filtered.map(m => (
-                  <MovieCard
-                    key={m.id}
-                    entry={m}
-                    onClick={() => setDetailId(m.id)}
-                    onStatusChange={(s) => handleUpdate(m.id, { status: s })}
-                  />
-                ))}
-              </div>
-            )
-          )}
           
-          {view === VIEWS.poster && (
-            <PosterWall
-              movies={filtered}
-              onClick={(id) => setDetailId(id)}
-            />
-          )}
+          <nav className="sidebar-nav">
+            <div className={`sidebar-nav-item ${view === VIEWS.list ? 'active' : ''}`} onClick={() => setView(VIEWS.list)}>
+              <span className="sidebar-nav-icon">📋</span>
+              <span>电影列表</span>
+            </div>
+            <div className={`sidebar-nav-item ${view === VIEWS.poster ? 'active' : ''}`} onClick={() => setView(VIEWS.poster)}>
+              <span className="sidebar-nav-icon">🖼</span>
+              <span>海报墙</span>
+            </div>
+            <div className={`sidebar-nav-item ${view === VIEWS.stats ? 'active' : ''}`} onClick={() => setView(VIEWS.stats)}>
+              <span className="sidebar-nav-icon">📊</span>
+              <span>统计</span>
+            </div>
+          </nav>
           
-          {view === VIEWS.stats && (
-            <MoviesChart movies={movies} />
-          )}
-        </div>
-      </main>
-      
-      {modals}
-    </div>
-  );
+          <div className="sidebar-actions">
+            <button className="sidebar-action-btn" onClick={() => setRandomOpen(true)}>🎲 随机抽一部</button>
+            <button className="sidebar-action-btn" onClick={() => setShareOpen(true)}>🔗 分享</button>
+            <button className="sidebar-action-btn" onClick={handleExport}>📤 导出</button>
+            <button className="sidebar-action-btn" onClick={() => setImportOpen(true)}>📥 导入</button>
+            <button className="sidebar-action-btn danger" onClick={handleReset}>🗑 清空</button>
+            <button className="sidebar-action-btn danger" onClick={() => signOut()}>🚪 退出登录</button>
+          </div>
+        </aside>
+        
+        <main className="content">
+          <div className="content-header">
+            <h2>
+              {view === VIEWS.list && '📋 电影列表'}
+              {view === VIEWS.poster && '🖼 海报墙'}
+              {view === VIEWS.stats && '📊 统计'}
+            </h2>
+            <button className="btn btn-primary btn-sm" onClick={() => setSearchOpen(true)}>＋ 添加电影</button>
+          </div>
+          
+          <div className="content-body">
+            {view === VIEWS.list && (
+              filtered.length === 0 ? (
+                <div className="empty">
+                  <p>🎬 还没有电影记录</p>
+                  <p className="empty-sub">点击"添加电影"搜索并添加你的第一部电影</p>
+                </div>
+              ) : (
+                <div className="movie-list movie-list--grid">
+                  {filtered.map(m => (
+                    <MovieCard
+                      key={m.id}
+                      entry={m}
+                      onClick={() => setDetailId(m.id)}
+                      onStatusChange={(s) => handleUpdate(m.id, { status: s })}
+                    />
+                  ))}
+                </div>
+              )
+            )}
+            
+            {view === VIEWS.poster && (
+              <PosterWall
+                movies={filtered}
+                onClick={(id) => setDetailId(id)}
+              />
+            )}
+            
+            {view === VIEWS.stats && (
+              <MoviesChart movies={movies} />
+            )}
+          </div>
+        </main>
+        
+        {modals}
+      </div>
+    );
+  }
 
   // Mobile layout (vertical with bottom-heavy design)
-  const mobileLayout = (
+  return (
     <div className="app-mobile">
       <header className="header">
         <div className="header-left">
@@ -491,12 +496,5 @@ export default function App() {
 
       {modals}
     </div>
-  );
-
-  return (
-    <>
-      {desktopLayout}
-      {mobileLayout}
-    </>
   );
 }

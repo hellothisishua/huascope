@@ -252,7 +252,7 @@ function MovieCardInner({ entry, onClick, onStatusChange, isDetail, onClose, onU
     <div className={`movie-card ${status === 'watched' ? 'movie-card--watched' : ''}`} onClick={onClick}>
       <div className="movie-card-left">
         {movie.poster ? (
-          <img src={posterUrl(movie.poster, 'w154')} alt="" className="movie-card-poster" loading="lazy" />
+          <img src={posterUrl(movie.poster, 'w342')} alt="" className="movie-card-poster" loading="lazy" />
         ) : (
           <div className="movie-card-poster movie-card-poster--empty">🎬</div>
         )}

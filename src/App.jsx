@@ -67,11 +67,11 @@ export default function App() {
         setMovies(prev => [entry, ...prev.filter(m => m.id !== entry.id)]);
         setSearchOpen(false);
       } else {
-        alert('添加失败，请重试');
+        alert('添加失败：Supabase返回null\n\n请检查数据库权限');
       }
     } catch (e) {
       console.error('add failed:', e);
-      alert('添加失败: ' + e.message + '\n\n请检查网络后重试');
+      alert('添加失败！\n\n错误类型: ' + (e.name || '未知') + '\n错误信息: ' + (e.message || '无') + '\n错误代码: ' + (e.code || '无') + '\n\n完整错误请查看F12 Console');
     }
   }, [user]);
 

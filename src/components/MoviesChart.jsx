@@ -43,13 +43,23 @@ export default function MoviesChart({ movies }) {
     try {
       const months = {};
       for (const m of watched) {
-        if (!m.addedAt) continue;
-        const date = new Date(m.addedAt);
+        // Use watchedDate (year-month) if available, fall back to addedAt
+        let dateStr = m.watchedDate || m.addedAt;
+        if (!dateStr) continue;
+        const date = new Date(dateStr);
         if (isNaN(date.getTime())) continue;
-        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        const key = `${date.getFullYear()}年${date.getMonth() + 1}月`;
         months[key] = (months[key] || 0) + 1;
       }
-      return Object.entries(months).sort();
+      return Object.entries(months).sort((a, b) => {
+        // Sort by year then month
+        const aMatch = a[0].match(/(\d+)年(\d+)月/);
+        const bMatch = b[0].match(/(\d+)年(\d+)月/);
+        if (!aMatch || !bMatch) return 0;
+        const aYear = parseInt(aMatch[1]), aMonth = parseInt(aMatch[2]);
+        const bYear = parseInt(bMatch[1]), bMonth = parseInt(bMatch[2]);
+        return aYear !== bYear ? aYear - bYear : aMonth - bMonth;
+      });
     } catch { return []; }
   }, [watched]);
 
@@ -156,7 +166,7 @@ export default function MoviesChart({ movies }) {
                 <div className="chart-bar-track">
                   <div className="chart-bar-fill" style={{ height: `${Math.max(0, (count / Math.max(...monthlyData.map(m => m[1]), 1))) * 100}%` }}></div>
                 </div>
-                <div className="chart-bar-label">{String(month).slice(5)}</div>
+                <div className="chart-bar-label">{month}</div>
                 <div className="chart-bar-num">{count}</div>
               </div>
             ))}

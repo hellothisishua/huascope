@@ -11,7 +11,6 @@ const STATUS_MAP = {
 const STARS = [1, 2, 3, 4, 5];
 
 function SafeMovieCard({ entry, ...props }) {
-  // Validate entry before rendering
   if (!entry || !entry.movie) {
     return (
       <div className="movie-card movie-card--error">
@@ -28,6 +27,37 @@ function SafeMovieCard({ entry, ...props }) {
 function MovieCardInner({ entry, onClick, onStatusChange, isDetail, onClose, onUpdate, onRemove }) {
   const { user } = useAuth() || {};
   const [refreshing, setRefreshing] = useState(false);
+  
+  // Edit state - only update on save
+  const [editStatus, setEditStatus] = useState(entry.status);
+  const [editRating, setEditRating] = useState(entry.rating);
+  const [editReview, setEditReview] = useState(entry.review);
+  const [editWatchedDate, setEditWatchedDate] = useState(entry.watchedDate);
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!user || saving) return;
+    setSaving(true);
+    try {
+      await onUpdate({ 
+        status: editStatus, 
+        rating: editRating, 
+        review: editReview,
+        watchedDate: editWatchedDate
+      });
+      onClose();
+    } catch (e) {
+      alert('保存失败: ' + e.message);
+    }
+    setSaving(false);
+  };
+
+  const handleRemove = () => {
+    if (!user) return;
+    if (confirm('确定删除这部电影？此操作不可恢复。')) {
+      onRemove();
+    }
+  };
 
   const handleRefresh = async () => {
     if (!user || refreshing) return;
@@ -52,7 +82,7 @@ function MovieCardInner({ entry, onClick, onStatusChange, isDetail, onClose, onU
   if (isDetail) {
     return (
       <div className="overlay" role="dialog">
-        <div className="overlay-backdrop" onClick={onClose}></div>
+        <div className="overlay-backdrop"></div>
         <div className="modal detail-modal">
           <button className="modal-close" onClick={onClose}>x</button>
 
@@ -113,8 +143,8 @@ function MovieCardInner({ entry, onClick, onStatusChange, isDetail, onClose, onU
                 {Object.entries(STATUS_MAP).map(([k, v]) => (
                   <button
                     key={k}
-                    className={`btn btn-sm ${status === k ? 'btn-primary' : 'btn-ghost'}`}
-                    onClick={() => onUpdate({ status: k })}
+                    className={`btn btn-sm ${editStatus === k ? 'btn-primary' : 'btn-ghost'}`}
+                    onClick={() => setEditStatus(k)}
                   >{v.icon} {v.label}</button>
                 ))}
               </div>
@@ -126,21 +156,21 @@ function MovieCardInner({ entry, onClick, onStatusChange, isDetail, onClose, onU
                 {STARS.map(s => (
                   <button
                     key={s}
-                    className={`star-btn ${s <= rating ? 'star-btn--active' : ''}`}
-                    onClick={() => onUpdate({ rating: rating === s ? 0 : s })}
-                  >{s <= rating ? '★' : '☆'}</button>
+                    className={`star-btn ${s <= editRating ? 'star-btn--active' : ''}`}
+                    onClick={() => setEditRating(editRating === s ? 0 : s)}
+                  >{s <= editRating ? '★' : '☆'}</button>
                 ))}
               </div>
             </div>
 
-            {status === 'watched' && (
+            {editStatus === 'watched' && (
               <div className="detail-section">
                 <label>观看时间</label>
                 <input
-                  type="date"
+                  type="month"
                   className="date-input"
-                  value={entry.watchedDate || ''}
-                  onChange={e => onUpdate({ watchedDate: e.target.value })}
+                  value={editWatchedDate || ''}
+                  onChange={e => setEditWatchedDate(e.target.value)}
                 />
               </div>
             )}
@@ -149,8 +179,8 @@ function MovieCardInner({ entry, onClick, onStatusChange, isDetail, onClose, onU
               <label>短评</label>
               <textarea
                 className="review-input"
-                value={entry.review || ''}
-                onChange={e => onUpdate({ review: e.target.value })}
+                value={editReview || ''}
+                onChange={e => setEditReview(e.target.value)}
                 placeholder="写下你的感受..."
                 rows={3}
               />
@@ -163,7 +193,18 @@ function MovieCardInner({ entry, onClick, onStatusChange, isDetail, onClose, onU
 
             <div className="detail-section detail-footer">
               <span className="detail-added">添加于 {new Date(entry.addedAt || Date.now()).toLocaleDateString('zh-CN')}</span>
-              <button className="btn btn-danger btn-sm" onClick={onRemove}>删除</button>
+              <button className="btn btn-danger btn-sm" onClick={handleRemove}>删除</button>
+            </div>
+
+            {/* Save button */}
+            <div className="detail-section detail-save-section">
+              <button 
+                className="btn btn-primary detail-save-btn" 
+                onClick={handleSave}
+                disabled={saving}
+              >
+                {saving ? '保存中...' : '💾 保存'}
+              </button>
             </div>
           </div>
         </div>

@@ -192,11 +192,9 @@ function MovieCardInner({ entry, onClick, onStatusChange, isDetail, onClose, onU
                     <option value="🚄 高铁上">🚄 高铁上</option>
                     <option value="🏨 酒店">🏨 酒店</option>
                     <option value="🏖 度假">🏖 度假</option>
-                    <option value="🏥 月子中心">🏥 月子中心</option>
-                    <option value="👶 产房">👶 产房</option>
-                    <option value="🌍 国外">🌍 国外</option>
-                    <option value="🚗 车上">🚗 车上</option>
-                    <option value="📱 手机上">📱 手机上</option>
+                    <option value="🚇 通勤路上">🚇 通勤路上</option>
+                    <option value="🏡 出租屋">🏡 出租屋</option>
+                    <option value="📺 视频拉片">📺 视频拉片</option>
                   </select>
                 </div>
               </>

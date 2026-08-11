@@ -36,7 +36,6 @@ export default function App() {
       setLoading(true);
       loadMovies(user.id)
         .then(data => {
-          // Validate data before setting
           if (Array.isArray(data)) {
             setMovies(data);
           } else {
@@ -237,9 +236,158 @@ export default function App() {
     return <AuthScreen />;
   }
 
-  return (
-    <div className="app">
-      {/* Header */}
+  // Shared modals
+  const modals = (
+    <>
+      {searchOpen && (
+        <SearchModal
+          onClose={() => setSearchOpen(false)}
+          onSelect={handleAdd}
+          existingIds={movies.map(m => m.id)}
+          searchFn={searchMovies}
+        />
+      )}
+      {detailMovie && (
+        <MovieCard
+          isDetail
+          entry={detailMovie}
+          onClose={() => setDetailId(null)}
+          onUpdate={(updates) => handleUpdate(detailMovie.id, updates)}
+          onRemove={() => handleRemove(detailMovie.id)}
+        />
+      )}
+      {randomOpen && (
+        <RandomPick
+          movies={movies}
+          onClose={() => setRandomOpen(false)}
+        />
+      )}
+      {shareOpen && (
+        <ShareModal
+          movies={movies}
+          onClose={() => setShareOpen(false)}
+        />
+      )}
+      {importOpen && (
+        <div className="overlay">
+          <div className="overlay-backdrop" onClick={() => setImportOpen(false)}></div>
+          <div className="modal">
+            <button className="modal-close" onClick={() => setImportOpen(false)}>x</button>
+            <h2>📥 导入分享码</h2>
+            <textarea
+              className="share-input"
+              value={importCode}
+              onChange={e => setImportCode(e.target.value)}
+              placeholder="粘贴朋友发给你的分享码..."
+              rows={4}
+            />
+            <button className="btn btn-primary share-copy-btn" onClick={handleImport}>
+              导入
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+
+  // Desktop layout (horizontal with sidebar)
+  const desktopLayout = (
+    <div className="app-desktop">
+      <aside className="sidebar">
+        <div className="sidebar-logo">
+          <svg viewBox="0 0 64 64" width="40" height="40">
+            <g transform="translate(32,32)">
+              <g><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#e89ab0" opacity="0.9"/></g>
+              <g transform="rotate(60)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#b06ab3" opacity="0.9"/></g>
+              <g transform="rotate(120)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#7b4cc7" opacity="0.9"/></g>
+              <g transform="rotate(180)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#e89ab0" opacity="0.9"/></g>
+              <g transform="rotate(240)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#b06ab3" opacity="0.9"/></g>
+              <g transform="rotate(300)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#7b4cc7" opacity="0.9"/></g>
+              <circle cx="0" cy="0" r="6" fill="#e8c84a"/>
+            </g>
+          </svg>
+          <div>
+            <div className="sidebar-title">HuaScope</div>
+            <div className="sidebar-sub">万花筒 · {user.email?.split('@')[0] || '观影簿'}</div>
+          </div>
+        </div>
+        
+        <nav className="sidebar-nav">
+          <div className={`sidebar-nav-item ${view === VIEWS.list ? 'active' : ''}`} onClick={() => setView(VIEWS.list)}>
+            <span className="sidebar-nav-icon">📋</span>
+            <span>电影列表</span>
+          </div>
+          <div className={`sidebar-nav-item ${view === VIEWS.poster ? 'active' : ''}`} onClick={() => setView(VIEWS.poster)}>
+            <span className="sidebar-nav-icon">🖼</span>
+            <span>海报墙</span>
+          </div>
+          <div className={`sidebar-nav-item ${view === VIEWS.stats ? 'active' : ''}`} onClick={() => setView(VIEWS.stats)}>
+            <span className="sidebar-nav-icon">📊</span>
+            <span>统计</span>
+          </div>
+        </nav>
+        
+        <div className="sidebar-actions">
+          <button className="sidebar-action-btn" onClick={() => setRandomOpen(true)}>🎲 随机抽一部</button>
+          <button className="sidebar-action-btn" onClick={() => setShareOpen(true)}>🔗 分享</button>
+          <button className="sidebar-action-btn" onClick={handleExport}>📤 导出</button>
+          <button className="sidebar-action-btn" onClick={() => setImportOpen(true)}>📥 导入</button>
+          <button className="sidebar-action-btn danger" onClick={handleReset}>🗑 清空</button>
+          <button className="sidebar-action-btn danger" onClick={() => signOut()}>🚪 退出登录</button>
+        </div>
+      </aside>
+      
+      <main className="content">
+        <div className="content-header">
+          <h2>
+            {view === VIEWS.list && '📋 电影列表'}
+            {view === VIEWS.poster && '🖼 海报墙'}
+            {view === VIEWS.stats && '📊 统计'}
+          </h2>
+          <button className="btn btn-primary btn-sm" onClick={() => setSearchOpen(true)}>＋ 添加电影</button>
+        </div>
+        
+        <div className="content-body">
+          {view === VIEWS.list && (
+            filtered.length === 0 ? (
+              <div className="empty">
+                <p>🎬 还没有电影记录</p>
+                <p className="empty-sub">点击"添加电影"搜索并添加你的第一部电影</p>
+              </div>
+            ) : (
+              <div className="movie-list">
+                {filtered.map(m => (
+                  <MovieCard
+                    key={m.id}
+                    entry={m}
+                    onClick={() => setDetailId(m.id)}
+                    onStatusChange={(s) => handleUpdate(m.id, { status: s })}
+                  />
+                ))}
+              </div>
+            )
+          )}
+          
+          {view === VIEWS.poster && (
+            <PosterWall
+              movies={filtered}
+              onClick={(id) => setDetailId(id)}
+            />
+          )}
+          
+          {view === VIEWS.stats && (
+            <MoviesChart movies={movies} />
+          )}
+        </div>
+      </main>
+      
+      {modals}
+    </div>
+  );
+
+  // Mobile layout (vertical with bottom-heavy design)
+  const mobileLayout = (
+    <div className="app-mobile">
       <header className="header">
         <div className="header-left">
           <svg className="header-logo" viewBox="0 0 64 64">
@@ -265,7 +413,6 @@ export default function App() {
         </div>
       </header>
 
-      {/* View tabs */}
       <div className="view-tabs">
         {[
           [VIEWS.list, '📋 列表'],
@@ -280,7 +427,6 @@ export default function App() {
         ))}
       </div>
 
-      {/* Filters */}
       <FilterBar
         status={filterStatus} onStatusChange={setFilterStatus}
         year={filterYear} onYearChange={setFilterYear}
@@ -290,7 +436,6 @@ export default function App() {
         genres={allGenres}
       />
 
-      {/* Main */}
       <main 
         className="main"
         onTouchStart={handleTouchStart}
@@ -334,72 +479,24 @@ export default function App() {
         )}
       </main>
 
-      {/* FAB */}
       <button className="fab" onClick={() => setSearchOpen(true)} title="添加电影">🌸</button>
 
-      {/* Count */}
       <div className="movie-count">{movies.length} 部 · {view === VIEWS.list ? `${filtered.length} 部可见` : ''}</div>
 
-      {/* Settings */}
       <div className="settings-bar">
         <button className="btn-text" onClick={handleExport}>📤 导出</button>
         <button className="btn-text" onClick={() => setImportOpen(true)}>📥 导入分享码</button>
         <button className="btn-text btn-text--danger" onClick={handleReset}>🗑 清空</button>
       </div>
 
-      {/* Modals */}
-      {searchOpen && (
-        <SearchModal
-          onClose={() => setSearchOpen(false)}
-          onSelect={handleAdd}
-          existingIds={movies.map(m => m.id)}
-          searchFn={searchMovies}
-        />
-      )}
-
-      {detailMovie && (
-        <MovieCard
-          isDetail
-          entry={detailMovie}
-          onClose={() => setDetailId(null)}
-          onUpdate={(updates) => handleUpdate(detailMovie.id, updates)}
-          onRemove={() => handleRemove(detailMovie.id)}
-        />
-      )}
-
-      {randomOpen && (
-        <RandomPick
-          movies={movies}
-          onClose={() => setRandomOpen(false)}
-        />
-      )}
-
-      {shareOpen && (
-        <ShareModal
-          movies={movies}
-          onClose={() => setShareOpen(false)}
-        />
-      )}
-
-      {importOpen && (
-        <div className="overlay">
-          <div className="overlay-backdrop" onClick={() => setImportOpen(false)}></div>
-          <div className="modal">
-            <button className="modal-close" onClick={() => setImportOpen(false)}>x</button>
-            <h2>📥 导入分享码</h2>
-            <textarea
-              className="share-input"
-              value={importCode}
-              onChange={e => setImportCode(e.target.value)}
-              placeholder="粘贴朋友发给你的分享码..."
-              rows={4}
-            />
-            <button className="btn btn-primary share-copy-btn" onClick={handleImport}>
-              导入
-            </button>
-          </div>
-        </div>
-      )}
+      {modals}
     </div>
+  );
+
+  return (
+    <>
+      {desktopLayout}
+      {mobileLayout}
+    </>
   );
 }

@@ -355,7 +355,7 @@ export default function App() {
                 <p className="empty-sub">点击"添加电影"搜索并添加你的第一部电影</p>
               </div>
             ) : (
-              <div className="movie-list">
+              <div className="movie-list movie-list--grid">
                 {filtered.map(m => (
                   <MovieCard
                     key={m.id}

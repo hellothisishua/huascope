@@ -54,6 +54,7 @@ body {
   line-height: 1.7;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 h1, h2, h3, h4, h5, h6,
@@ -68,296 +69,19 @@ h1, h2, h3, h4, h5, h6,
 button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
 input, select, textarea { font-family: inherit; color: inherit; }
 
-/* ===== Mobile Layout (Default) ===== */
+/* ===== Mobile-First Base Styles ===== */
+
+/* Hide desktop on mobile */
+.app-desktop { display: none; }
+.app-mobile { display: block; }
+
+/* ===== App Shell ===== */
 .app {
   max-width: 100%;
   margin: 0 auto;
   min-height: 100vh;
   padding-bottom: 100px;
 }
-
-.app-desktop { display: none; }
-.app-mobile { display: block; }
-
-/* ===== Desktop Layout ===== */
-@media (min-width: 900px) {
-  body {
-    background: linear-gradient(135deg, #F5EEF5 0%, #F0E8F0 50%, #F8F5F2 100%);
-    overflow: hidden;
-  }
-  
-  .app {
-    display: none;
-  }
-  
-  .app-mobile { display: none !important; }
-  .app-desktop {
-    display: flex !important;
-    height: 100vh;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 20px;
-    gap: 20px;
-  }
-  
-  /* Sidebar */
-  .sidebar {
-    width: 260px;
-    flex-shrink: 0;
-    background: var(--clay-surface);
-    border: 1px solid var(--clay-border);
-    border-radius: var(--radius-xl);
-    padding: 24px 16px;
-    display: flex;
-    flex-direction: column;
-    box-shadow: var(--shadow-clay);
-  }
-  
-  .sidebar-logo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 0 8px 20px;
-    border-bottom: 1px solid var(--clay-border);
-    margin-bottom: 16px;
-  }
-  
-  .sidebar-logo svg {
-    width: 40px; height: 40px;
-    animation: spin 20s linear infinite;
-  }
-  
-  .sidebar-title {
-    font-family: "Ma Shan Zheng", serif;
-    font-size: 22px;
-    color: var(--text);
-  }
-  
-  .sidebar-sub {
-    font-size: 11px;
-    color: var(--text-dim);
-  }
-  
-  .sidebar-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    flex: 1;
-  }
-  
-  .sidebar-nav-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    border-radius: var(--radius);
-    font-size: 14px;
-    color: var(--text-dim);
-    transition: all 0.2s;
-    cursor: pointer;
-  }
-  
-  .sidebar-nav-item:hover {
-    background: var(--clay-surface-2);
-    color: var(--text);
-  }
-  
-  .sidebar-nav-item.active {
-    background: linear-gradient(135deg, var(--clay-rose) 0%, var(--clay-rose-deep) 100%);
-    color: #fff;
-    box-shadow: 0 4px 12px rgba(212, 165, 165, 0.25);
-  }
-  
-  .sidebar-nav-icon {
-    font-size: 18px;
-    width: 24px;
-    text-align: center;
-  }
-  
-  .sidebar-actions {
-    padding-top: 16px;
-    border-top: 1px solid var(--clay-border);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .sidebar-action-btn {
-    padding: 10px 16px;
-    border-radius: var(--radius);
-    font-size: 13px;
-    color: var(--text-dim);
-    transition: all 0.2s;
-    text-align: left;
-  }
-  
-  .sidebar-action-btn:hover {
-    background: var(--clay-surface-2);
-    color: var(--text);
-  }
-  
-  .sidebar-action-btn.danger:hover {
-    background: rgba(212, 165, 165, 0.12);
-    color: var(--clay-rose-deep);
-  }
-  
-  /* Content area */
-  .content {
-    flex: 1;
-    background: var(--clay-surface);
-    border: 1px solid var(--clay-border);
-    border-radius: var(--radius-xl);
-    overflow-y: auto;
-    box-shadow: var(--shadow-clay);
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .content-header {
-    padding: 20px 28px;
-    border-bottom: 1px solid var(--clay-border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  
-  .content-header h2 {
-    font-family: "Ma Shan Zheng", serif;
-    font-size: 24px;
-    color: var(--text);
-  }
-  
-  .content-body {
-    padding: 24px 28px;
-    flex: 1;
-    overflow-y: auto;
-  }
-  
-  /* Desktop header (hidden on mobile) */
-  .header {
-    display: none;
-  }
-  
-  .content .header {
-    display: flex;
-    position: sticky;
-    top: 0;
-    background: rgba(248, 245, 242, 0.92);
-    backdrop-filter: blur(20px);
-    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    z-index: 10;
-  }
-  
-  /* FAB desktop */
-  .fab {
-    right: 24px !important;
-    bottom: 24px !important;
-    width: 56px !important;
-    height: 56px !important;
-    font-size: 26px !important;
-  }
-  
-  /* Modal desktop centering */
-  .overlay {
-    align-items: center !important;
-    padding: 24px !important;
-  }
-  
-  .modal {
-    border-radius: var(--radius-xl) !important;
-    max-width: 500px !important;
-    max-height: 85vh !important;
-    padding: 28px !important;
-    animation: modalIn 0.25s ease-out !important;
-  }
-  
-  /* Movie list desktop - grid layout */
-  .movie-list {
-    display: grid !important;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 16px;
-  }
-  
-  .movie-card {
-    flex-direction: column;
-    gap: 0;
-    padding: 0;
-    overflow: hidden;
-  }
-  
-  .movie-card-poster {
-    width: 100% !important;
-    height: 180px !important;
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
-  }
-  
-  .movie-card-poster--empty {
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
-  }
-  
-  .movie-card-body {
-    padding: 16px;
-  }
-  
-  .movie-card-title {
-    font-size: 15px !important;
-  }
-  
-  .movie-card-meta {
-    font-size: 12px !important;
-  }
-  
-  /* Stats desktop */
-  .stats-page {
-    max-width: 900px;
-    margin: 0 auto;
-  }
-  
-  .stats-hero {
-    padding: 40px 28px !important;
-  }
-  
-  .stats-hero-num {
-    font-size: 64px !important;
-  }
-  
-  .stats-hero-grid {
-    max-width: 500px;
-    margin: 0 auto;
-  }
-  
-  .stats-section {
-    padding: 24px !important;
-  }
-  
-  /* Poster wall desktop */
-  .poster-wall {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
-    gap: 16px !important;
-  }
-  
-  /* Search modal desktop */
-  .search-modal {
-    max-width: 600px !important;
-  }
-  
-  .search-results {
-    max-height: 500px !important;
-  }
-  
-  .search-item-main {
-    gap: 16px !important;
-  }
-  
-  .search-item-img {
-    width: 60px !important;
-    height: 90px !important;
-  }
-}
-
-@keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
-
-/* ===== Mobile Styles ===== */
 
 /* ===== Header ===== */
 .header {
@@ -393,6 +117,12 @@ input, select, textarea { font-family: inherit; color: inherit; }
   transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   background: var(--clay-surface);
   box-shadow: var(--shadow-puffy);
+}
+
+.icon-btn:hover { 
+  background: var(--clay-surface-2); 
+  transform: scale(1.08);
+  box-shadow: var(--shadow-clay-hover);
 }
 
 /* ===== View Tabs ===== */
@@ -460,7 +190,7 @@ input, select, textarea { font-family: inherit; color: inherit; }
 .main { padding: 10px 16px 0; }
 .movie-count { padding: 6px 16px; font-size: 11px; color: var(--text-dim); }
 
-/* ===== Movie List ===== */
+/* ===== Movie List (Mobile) ===== */
 .movie-list { display: flex; flex-direction: column; gap: 10px; }
 
 .movie-card {
@@ -1462,4 +1192,275 @@ textarea { resize: vertical; min-height: 80px; }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--clay-border);
+}
+
+/* ========================================
+   DESKTOP LAYOUT (min-width: 900px)
+   ======================================== */
+@media (min-width: 900px) {
+  body {
+    background: linear-gradient(135deg, #F5EEF5 0%, #F0E8F0 50%, #F8F5F2 100%);
+    overflow: hidden;
+  }
+  
+  /* Toggle visibility */
+  .app-desktop { display: flex !important; }
+  .app-mobile { display: none !important; }
+  
+  /* Desktop app shell */
+  .app {
+    display: none;
+  }
+  
+  /* Sidebar */
+  .sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    background: var(--clay-surface);
+    border: 1px solid var(--clay-border);
+    border-radius: var(--radius-xl);
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-clay);
+  }
+  
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 8px 20px;
+    border-bottom: 1px solid var(--clay-border);
+    margin-bottom: 16px;
+  }
+  
+  .sidebar-logo svg {
+    width: 40px; height: 40px;
+    animation: spin 20s linear infinite;
+  }
+  
+  .sidebar-title {
+    font-family: "Ma Shan Zheng", serif;
+    font-size: 22px;
+    color: var(--text);
+  }
+  
+  .sidebar-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+  }
+  
+  .sidebar-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    color: var(--text-dim);
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  
+  .sidebar-nav-item:hover {
+    background: var(--clay-surface-2);
+    color: var(--text);
+  }
+  
+  .sidebar-nav-item.active {
+    background: linear-gradient(135deg, var(--clay-rose) 0%, var(--clay-rose-deep) 100%);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(212, 165, 165, 0.25);
+  }
+  
+  .sidebar-nav-icon {
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
+  }
+  
+  .sidebar-actions {
+    padding-top: 16px;
+    border-top: 1px solid var(--clay-border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .sidebar-action-btn {
+    padding: 10px 16px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    color: var(--text-dim);
+    transition: all 0.2s;
+    text-align: left;
+  }
+  
+  .sidebar-action-btn:hover {
+    background: var(--clay-surface-2);
+    color: var(--text);
+  }
+  
+  .sidebar-action-btn.danger:hover {
+    background: rgba(212, 165, 165, 0.12);
+    color: var(--clay-rose-deep);
+  }
+  
+  /* Content area */
+  .content {
+    flex: 1;
+    background: var(--clay-surface);
+    border: 1px solid var(--clay-border);
+    border-radius: var(--radius-xl);
+    overflow-y: auto;
+    box-shadow: var(--shadow-clay);
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 40px);
+  }
+  
+  .content-header {
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--clay-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: rgba(248, 245, 242, 0.92);
+    backdrop-filter: blur(20px);
+    z-index: 5;
+  }
+  
+  .content-header h2 {
+    font-family: "Ma Shan Zheng", serif;
+    font-size: 24px;
+    color: var(--text);
+  }
+  
+  .content-body {
+    padding: 24px 32px;
+    flex: 1;
+    overflow-y: auto;
+  }
+  
+  /* Movie list desktop - horizontal cards */
+  .movie-list--grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+    gap: 20px !important;
+  }
+  
+  .movie-list--grid .movie-card {
+    flex-direction: column !important;
+    gap: 0 !important;
+    padding: 0 !important;
+    overflow: hidden;
+    height: 100%;
+  }
+  
+  .movie-list--grid .movie-card-poster {
+    width: 100% !important;
+    height: 240px !important;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
+    object-fit: cover !important;
+  }
+  
+  .movie-list--grid .movie-card-poster--empty {
+    height: 240px !important;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
+  }
+  
+  .movie-list--grid .movie-card-body {
+    padding: 14px !important;
+  }
+  
+  .movie-list--grid .movie-card-title {
+    font-size: 14px !important;
+  }
+  
+  .movie-list--grid .movie-card-meta {
+    font-size: 11px !important;
+  }
+  
+  /* Poster wall desktop - full width grid */
+  .poster-wall {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+    gap: 16px !important;
+  }
+  
+  .poster-wall-item {
+    border-radius: var(--radius) !important;
+  }
+  
+  /* Stats desktop - full width */
+  .stats-page {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+  
+  .stats-hero {
+    padding: 40px 28px !important;
+  }
+  
+  .stats-hero-num {
+    font-size: 64px !important;
+  }
+  
+  .stats-hero-grid {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  
+  .stats-section {
+    padding: 24px !important;
+  }
+  
+  /* Modal desktop centering */
+  .overlay {
+    align-items: center !important;
+    padding: 24px !important;
+  }
+  
+  .modal {
+    border-radius: var(--radius-xl) !important;
+    max-width: 500px !important;
+    max-height: 85vh !important;
+    padding: 28px !important;
+    animation: modalIn 0.25s ease-out !important;
+  }
+  
+  /* Search modal desktop */
+  .search-modal {
+    max-width: 600px !important;
+  }
+  
+  .search-results {
+    max-height: 500px !important;
+  }
+  
+  .search-item-main {
+    gap: 16px !important;
+  }
+  
+  .search-item-img {
+    width: 60px !important;
+    height: 90px !important;
+  }
+  
+  /* FAB desktop */
+  .fab {
+    right: 24px !important;
+    bottom: 24px !important;
+    width: 56px !important;
+    height: 56px !important;
+    font-size: 26px !important;
+  }
 }

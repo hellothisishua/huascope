@@ -98,6 +98,63 @@ export default function App() {
     setMovies([]);
   }, [user, movies]);
 
+  const handleExport = useCallback(() => {
+    if (!movies || movies.length === 0) { alert('没有可导出的数据'); return; }
+    const data = movies.map(m => ({
+      id: m.id,
+      title: m.movie?.title,
+      titleCn: m.movie?.titleCn,
+      year: m.movie?.year,
+      status: m.status,
+      rating: m.rating,
+      review: m.review,
+      watchedDate: m.watchedDate,
+      director: m.movie?.director,
+      cast: m.movie?.cast,
+      genres: m.movie?.genres,
+      overview: m.movie?.overview,
+      addedAt: m.addedAt,
+    }));
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `huascope-movies-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [movies]);
+
+  // Pull-to-refresh state
+  const [pullStart, setPullStart] = useState(null);
+  const [pullDistance, setPullDistance] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleTouchStart = useCallback((e) => {
+    if (window.scrollY === 0) {
+      setPullStart(e.touches[0].clientY);
+    }
+  }, []);
+
+  const handleTouchMove = useCallback((e) => {
+    if (pullStart === null) return;
+    const diff = e.touches[0].clientY - pullStart;
+    if (diff > 0 && diff < 200) {
+      setPullDistance(diff);
+    }
+  }, [pullStart]);
+
+  const handleTouchEnd = useCallback(async () => {
+    if (pullDistance > 80 && user) {
+      setRefreshing(true);
+      loadMovies(user.id).then(data => {
+        setMovies(data || []);
+        setRefreshing(false);
+      });
+    }
+    setPullStart(null);
+    setPullDistance(0);
+  }, [pullDistance, user]);
+
   const handleImport = useCallback(async () => {
     if (!user) return;
     const entries = decodeShare(importCode);
@@ -222,7 +279,15 @@ export default function App() {
       />
 
       {/* Main */}
-      <main className="main">
+      <main 
+        className="main"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {refreshing && (
+          <div className="refresh-indicator">⟳ 刷新中...</div>
+        )}
         {loading ? (
           <div className="empty"><p>⏳ 正在从云端加载...</p></div>
         ) : view === VIEWS.list && (
@@ -265,6 +330,7 @@ export default function App() {
 
       {/* Settings */}
       <div className="settings-bar">
+        <button className="btn-text" onClick={handleExport}>📤 导出</button>
         <button className="btn-text" onClick={() => setImportOpen(true)}>📥 导入分享码</button>
         <button className="btn-text btn-text--danger" onClick={handleReset}>🗑 清空</button>
       </div>

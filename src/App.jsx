@@ -6,7 +6,6 @@ import SearchModal from './components/SearchModal';
 import MovieCard from './components/MovieCard';
 import FilterBar from './components/FilterBar';
 import PosterWall from './components/PosterWall';
-import YearSummary from './components/YearSummary';
 import MoviesChart from './components/MoviesChart';
 import RandomPick from './components/RandomPick';
 import ShareModal from './components/ShareModal';
@@ -30,25 +29,16 @@ export default function App() {
   const [importOpen, setImportOpen] = useState(false);
   const [importCode, setImportCode] = useState('');
 
-  // 加载当前用户的电影
   useEffect(() => {
     if (user) {
       setLoading(true);
       loadMovies(user.id)
         .then(data => {
-          if (Array.isArray(data)) {
-            setMovies(data);
-          } else {
-            console.warn('loadMovies returned non-array:', data);
-            setMovies([]);
-          }
+          if (Array.isArray(data)) setMovies(data);
+          else setMovies([]);
           setLoading(false);
         })
-        .catch(err => {
-          console.error('loadMovies failed:', err);
-          setMovies([]);
-          setLoading(false);
-        });
+        .catch(() => { setMovies([]); setLoading(false); });
     } else {
       setMovies([]);
       setLoading(false);
@@ -66,11 +56,10 @@ export default function App() {
         setMovies(prev => [entry, ...prev.filter(m => m.id !== entry.id)]);
         setSearchOpen(false);
       } else {
-        alert('添加失败：Supabase返回null\n\n请检查数据库权限');
+        alert('添加失败：Supabase返回null');
       }
     } catch (e) {
-      console.error('add failed:', e);
-      alert('添加失败！\n\n错误: ' + (e.message || '未知错误') + '\n\n请查看F12 Console');
+      alert('添加失败！错误: ' + (e.message || '未知错误'));
     }
   }, [user]);
 
@@ -85,7 +74,7 @@ export default function App() {
     if (!confirm('确定删除这部电影？')) return;
     setMovies(prev => prev.filter(m => m.id !== id));
     setDetailId(null);
-    removeMovieDb(user.id, id).catch(e => console.error('remove failed:', e));
+    removeMovieDb(user.id, id);
   }, [user]);
 
   const handleReset = useCallback(async () => {
@@ -100,20 +89,9 @@ export default function App() {
   const handleExport = useCallback(() => {
     if (!movies || movies.length === 0) { alert('没有可导出的数据'); return; }
     const data = movies.map(m => ({
-      id: m.id,
-      title: m.movie?.title,
-      titleCn: m.movie?.titleCn,
-      year: m.movie?.year,
-      status: m.status,
-      rating: m.rating,
-      review: m.review,
-      watchedDate: m.watchedDate,
-      location: m.location,
-      director: m.movie?.director,
-      cast: m.movie?.cast,
-      genres: m.movie?.genres,
-      overview: m.movie?.overview,
-      addedAt: m.addedAt,
+      id: m.id, title: m.movie?.title, year: m.movie?.year,
+      status: m.status, rating: m.rating, review: m.review,
+      watchedDate: m.watchedDate, addedAt: m.addedAt,
     }));
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -123,37 +101,6 @@ export default function App() {
     a.click();
     URL.revokeObjectURL(url);
   }, [movies]);
-
-  // Pull-to-refresh state
-  const [pullStart, setPullStart] = useState(null);
-  const [pullDistance, setPullDistance] = useState(0);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const handleTouchStart = useCallback((e) => {
-    if (window.scrollY === 0) {
-      setPullStart(e.touches[0].clientY);
-    }
-  }, []);
-
-  const handleTouchMove = useCallback((e) => {
-    if (pullStart === null) return;
-    const diff = e.touches[0].clientY - pullStart;
-    if (diff > 0 && diff < 200) {
-      setPullDistance(diff);
-    }
-  }, [pullStart]);
-
-  const handleTouchEnd = useCallback(async () => {
-    if (pullDistance > 80 && user) {
-      setRefreshing(true);
-      loadMovies(user.id).then(data => {
-        setMovies(data || []);
-        setRefreshing(false);
-      });
-    }
-    setPullStart(null);
-    setPullDistance(0);
-  }, [pullDistance, user]);
 
   const handleImport = useCallback(async () => {
     if (!user) return;
@@ -210,7 +157,6 @@ export default function App() {
 
   const detailMovie = detailId ? movies.find(m => m.id === detailId) : null;
 
-  // 加载中
   if (authLoading) {
     return (
       <div className="splash-screen">
@@ -231,70 +177,32 @@ export default function App() {
     );
   }
 
-  // 未登录显示登录界面
-  if (!user) {
-    return <AuthScreen />;
-  }
+  if (!user) return <AuthScreen />;
 
-  // Shared modals
   const modals = (
     <>
-      {searchOpen && (
-        <SearchModal
-          onClose={() => setSearchOpen(false)}
-          onSelect={handleAdd}
-          existingIds={movies.map(m => m.id)}
-          searchFn={searchMovies}
-        />
-      )}
-      {detailMovie && (
-        <MovieCard
-          isDetail
-          entry={detailMovie}
-          onClose={() => setDetailId(null)}
-          onUpdate={(updates) => handleUpdate(detailMovie.id, updates)}
-          onRemove={() => handleRemove(detailMovie.id)}
-        />
-      )}
-      {randomOpen && (
-        <RandomPick
-          movies={movies}
-          onClose={() => setRandomOpen(false)}
-        />
-      )}
-      {shareOpen && (
-        <ShareModal
-          movies={movies}
-          onClose={() => setShareOpen(false)}
-        />
-      )}
+      {searchOpen && <SearchModal onClose={() => setSearchOpen(false)} onSelect={handleAdd} existingIds={movies.map(m => m.id)} searchFn={searchMovies} />}
+      {detailMovie && <MovieCard isDetail entry={detailMovie} onClose={() => setDetailId(null)} onUpdate={(updates) => handleUpdate(detailMovie.id, updates)} onRemove={() => handleRemove(detailMovie.id)} />}
+      {randomOpen && <RandomPick movies={movies} onClose={() => setRandomOpen(false)} />}
+      {shareOpen && <ShareModal movies={movies} onClose={() => setShareOpen(false)} />}
       {importOpen && (
         <div className="overlay">
           <div className="overlay-backdrop" onClick={() => setImportOpen(false)}></div>
           <div className="modal">
             <button className="modal-close" onClick={() => setImportOpen(false)}>x</button>
             <h2>📥 导入分享码</h2>
-            <textarea
-              className="share-input"
-              value={importCode}
-              onChange={e => setImportCode(e.target.value)}
-              placeholder="粘贴朋友发给你的分享码..."
-              rows={4}
-            />
-            <button className="btn btn-primary share-copy-btn" onClick={handleImport}>
-              导入
-            </button>
+            <textarea className="share-input" value={importCode} onChange={e => setImportCode(e.target.value)} placeholder="粘贴朋友发给你的分享码..." rows={4} />
+            <button className="btn btn-primary share-copy-btn" onClick={handleImport}>导入</button>
           </div>
         </div>
       )}
     </>
   );
 
-  // 检测是否为桌面设备
+  // Detect desktop
   const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 900;
 
   if (isDesktop) {
-    // Desktop layout (horizontal with sidebar)
     return (
       <div className="app-desktop">
         <aside className="sidebar">
@@ -315,22 +223,17 @@ export default function App() {
               <div className="sidebar-sub">万花筒 · {user.email?.split('@')[0] || '观影簿'}</div>
             </div>
           </div>
-          
           <nav className="sidebar-nav">
             <div className={`sidebar-nav-item ${view === VIEWS.list ? 'active' : ''}`} onClick={() => setView(VIEWS.list)}>
-              <span className="sidebar-nav-icon">📋</span>
-              <span>电影列表</span>
+              <span className="sidebar-nav-icon">📋</span><span>电影列表</span>
             </div>
             <div className={`sidebar-nav-item ${view === VIEWS.poster ? 'active' : ''}`} onClick={() => setView(VIEWS.poster)}>
-              <span className="sidebar-nav-icon">🖼</span>
-              <span>海报墙</span>
+              <span className="sidebar-nav-icon">🖼</span><span>海报墙</span>
             </div>
             <div className={`sidebar-nav-item ${view === VIEWS.stats ? 'active' : ''}`} onClick={() => setView(VIEWS.stats)}>
-              <span className="sidebar-nav-icon">📊</span>
-              <span>统计</span>
+              <span className="sidebar-nav-icon">📊</span><span>统计</span>
             </div>
           </nav>
-          
           <div className="sidebar-actions">
             <button className="sidebar-action-btn" onClick={() => setRandomOpen(true)}>🎲 随机抽一部</button>
             <button className="sidebar-action-btn" onClick={() => setShareOpen(true)}>🔗 分享</button>
@@ -340,7 +243,6 @@ export default function App() {
             <button className="sidebar-action-btn danger" onClick={() => signOut()}>🚪 退出登录</button>
           </div>
         </aside>
-        
         <main className="content">
           <div className="content-header">
             <h2>
@@ -350,47 +252,26 @@ export default function App() {
             </h2>
             <button className="btn btn-primary btn-sm" onClick={() => setSearchOpen(true)}>＋ 添加电影</button>
           </div>
-          
           <div className="content-body">
             {view === VIEWS.list && (
               filtered.length === 0 ? (
-                <div className="empty">
-                  <p>🎬 还没有电影记录</p>
-                  <p className="empty-sub">点击"添加电影"搜索并添加你的第一部电影</p>
-                </div>
+                <div className="empty"><p>🎬 还没有电影记录</p><p className="empty-sub">点击"添加电影"搜索并添加你的第一部电影</p></div>
               ) : (
                 <div className="movie-list movie-list--grid">
-                  {filtered.map(m => (
-                    <MovieCard
-                      key={m.id}
-                      entry={m}
-                      onClick={() => setDetailId(m.id)}
-                      onStatusChange={(s) => handleUpdate(m.id, { status: s })}
-                    />
-                  ))}
+                  {filtered.map(m => <MovieCard key={m.id} entry={m} onClick={() => setDetailId(m.id)} onStatusChange={(s) => handleUpdate(m.id, { status: s })} />)}
                 </div>
               )
             )}
-            
-            {view === VIEWS.poster && (
-              <PosterWall
-                movies={filtered}
-                onClick={(id) => setDetailId(id)}
-              />
-            )}
-            
-            {view === VIEWS.stats && (
-              <MoviesChart movies={movies} />
-            )}
+            {view === VIEWS.poster && <PosterWall movies={filtered} onClick={(id) => setDetailId(id)} />}
+            {view === VIEWS.stats && <MoviesChart movies={movies} />}
           </div>
         </main>
-        
         {modals}
       </div>
     );
   }
 
-  // Mobile layout (vertical with bottom-heavy design)
+  // Mobile layout
   return (
     <div className="app-mobile">
       <header className="header">
@@ -417,83 +298,34 @@ export default function App() {
           <button className="icon-btn" onClick={() => { if(confirm('确定退出登录？')) signOut(); }} title="退出">🚪</button>
         </div>
       </header>
-
       <div className="view-tabs">
-        {[
-          [VIEWS.list, '📋 列表'],
-          [VIEWS.poster, '🖼 海报墙'],
-          [VIEWS.stats, '📊 统计'],
-        ].map(([v, label]) => (
-          <button
-            key={v}
-            className={`view-tab ${view === v ? 'view-tab--active' : ''}`}
-            onClick={() => setView(v)}
-          >{label}</button>
+        {[[VIEWS.list, '📋 列表'], [VIEWS.poster, '🖼 海报墙'], [VIEWS.stats, '📊 统计']].map(([v, label]) => (
+          <button key={v} className={`view-tab ${view === v ? 'view-tab--active' : ''}`} onClick={() => setView(v)}>{label}</button>
         ))}
       </div>
-
-      <FilterBar
-        status={filterStatus} onStatusChange={setFilterStatus}
-        year={filterYear} onYearChange={setFilterYear}
-        genre={filterGenre} onGenreChange={setFilterGenre}
-        sort={sortBy} onSortChange={setSortBy}
-        years={allYears}
-        genres={allGenres}
-      />
-
-      <main 
-        className="main"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
-        {refreshing && (
-          <div className="refresh-indicator">⟳ 刷新中...</div>
-        )}
+      <FilterBar status={filterStatus} onStatusChange={setFilterStatus} year={filterYear} onYearChange={setFilterYear} genre={filterGenre} onGenreChange={setFilterGenre} sort={sortBy} onSortChange={setSortBy} years={allYears} genres={allGenres} />
+      <main className="main">
         {loading ? (
           <div className="empty"><p>⏳ 正在从云端加载...</p></div>
         ) : view === VIEWS.list && (
           filtered.length === 0 ? (
-            <div className="empty">
-              <p>🎬 还没有电影记录</p>
-              <p className="empty-sub">点击下方 + 按钮搜索并添加你的第一部电影</p>
-            </div>
+            <div className="empty"><p>🎬 还没有电影记录</p><p className="empty-sub">点击下方 + 按钮搜索并添加你的第一部电影</p></div>
           ) : (
             <div className="movie-list">
-              {filtered.map(m => (
-                <MovieCard
-                  key={m.id}
-                  entry={m}
-                  onClick={() => setDetailId(m.id)}
-                  onStatusChange={(s) => handleUpdate(m.id, { status: s })}
-                />
-              ))}
+              {filtered.map(m => <MovieCard key={m.id} entry={m} onClick={() => setDetailId(m.id)} onStatusChange={(s) => handleUpdate(m.id, { status: s })} />)}
             </div>
           )
         )}
-
-        {view === VIEWS.poster && (
-          <PosterWall
-            movies={filtered}
-            onClick={(id) => setDetailId(id)}
-          />
-        )}
-
-        {view === VIEWS.stats && (
-          <MoviesChart movies={movies} />
-        )}
+        {view === VIEWS.poster && <PosterWall movies={filtered} onClick={(id) => setDetailId(id)} />}
+        {view === VIEWS.stats && <MoviesChart movies={movies} />}
       </main>
-
       <button className="fab" onClick={() => setSearchOpen(true)} title="添加电影">🌸</button>
-
       <div className="movie-count">{movies.length} 部 · {view === VIEWS.list ? `${filtered.length} 部可见` : ''}</div>
-
       <div className="settings-bar">
         <button className="btn-text" onClick={handleExport}>📤 导出</button>
         <button className="btn-text" onClick={() => setImportOpen(true)}>📥 导入分享码</button>
         <button className="btn-text btn-text--danger" onClick={handleReset}>🗑 清空</button>
       </div>
-
       {modals}
     </div>
   );

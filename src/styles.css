@@ -617,14 +617,17 @@ textarea { resize: vertical; min-height: 80px; }
 .star-btn:hover { transform: scale(1.15); }
 
 /* ===== Detail Modal ===== */
-.detail-modal { padding: 0; overflow: hidden; }
+.detail-modal { padding: 0; overflow: hidden; max-height: 90vh; display: flex; flex-direction: column; }
 
 .detail-header {
   height: 160px;
   background-size: cover;
   background-position: center;
   position: relative;
+  flex-shrink: 0;
 }
+
+.detail-body { padding: 20px; overflow-y: auto; flex: 1; }
 
 .detail-header-overlay {
   position: absolute;
@@ -641,8 +644,6 @@ textarea { resize: vertical; min-height: 80px; }
   border: 3px solid #fff;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
-
-.detail-body { padding: 20px; }
 
 .detail-title { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
 
@@ -765,6 +766,36 @@ textarea { resize: vertical; min-height: 80px; }
 }
 
 .search-item-add:hover { opacity: 0.85; }
+
+.search-status-bar {
+  display: flex;
+  gap: 8px;
+  padding: 10px 0;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-status-label {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-right: 4px;
+}
+
+.search-status-btn {
+  padding: 6px 12px;
+  background: var(--surface-2);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.search-status-btn--active {
+  background: var(--morandi-rose);
+  color: white;
+  border-color: var(--morandi-rose);
+}
 
 .search-error {
   padding: 14px;

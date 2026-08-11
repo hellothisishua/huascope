@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import { posterUrl } from '../lib/tmdb';
 
+const STATUS_LIST = [
+  { key: 'want', label: '想看', icon: '🔖' },
+  { key: 'watching', label: '在看', icon: '▶️' },
+  { key: 'watched', label: '看过', icon: '✅' },
+];
+
 export default function SearchModal({ onClose, onSelect, existingIds, searchFn }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -8,6 +14,7 @@ export default function SearchModal({ onClose, onSelect, existingIds, searchFn }
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
+  const [selectedStatus, setSelectedStatus] = useState('want');
 
   async function doSearch(q, p = 1) {
     if (!q || q.length < 2) { setResults([]); setError(''); return; }
@@ -38,6 +45,19 @@ export default function SearchModal({ onClose, onSelect, existingIds, searchFn }
           value={query}
           onChange={e => { setQuery(e.target.value); doSearch(e.target.value); }}
         />
+        
+        {/* Status selector */}
+        <div className="search-status-bar">
+          <span className="search-status-label">添加为：</span>
+          {STATUS_LIST.map(s => (
+            <button
+              key={s.key}
+              className={`search-status-btn ${selectedStatus === s.key ? 'search-status-btn--active' : ''}`}
+              onClick={() => setSelectedStatus(s.key)}
+            >{s.icon} {s.label}</button>
+          ))}
+        </div>
+
         {loading && <div className="loading">搜索中...</div>}
         {error && (
           <div className="search-error">
@@ -49,7 +69,7 @@ export default function SearchModal({ onClose, onSelect, existingIds, searchFn }
           <div className="search-results">
             {results.map(r => (
               <div key={r.id} className={`search-item ${existingIds.includes(r.id) ? 'search-item--exists' : ''}`}>
-                <button className="search-item-main" onClick={() => onSelect(r)}>
+                <div className="search-item-main">
                   {r.poster_path ? (
                     <img src={posterUrl(r.poster_path, 'w92')} alt="" className="search-item-img" />
                   ) : (
@@ -63,9 +83,9 @@ export default function SearchModal({ onClose, onSelect, existingIds, searchFn }
                     <div className="search-item-overview">{r.overview?.slice(0, 100) || '暂无简介'}</div>
                     {existingIds.includes(r.id) && <div className="search-item-tag">已在清单中</div>}
                   </div>
-                </button>
+                </div>
                 {!existingIds.includes(r.id) && (
-                  <button className="search-item-add" onClick={() => onSelect(r)}>＋ 添加</button>
+                  <button className="search-item-add" onClick={() => onSelect(r, selectedStatus)}>＋ 添加</button>
                 )}
               </div>
             ))}

@@ -56,13 +56,13 @@ export default function App() {
     }
   }, [user]);
 
-  const handleAdd = useCallback(async (raw) => {
+  const handleAdd = useCallback(async (raw, status) => {
     if (!user) return;
     try {
       const detail = await getMovie(raw.id);
       if (!detail) throw new Error('无法获取电影详情');
       const movie = formatMovie(detail);
-      const entry = await addMovieDb(user.id, movie, 'want');
+      const entry = await addMovieDb(user.id, movie, status || 'want');
       if (entry) {
         setMovies(prev => [entry, ...prev.filter(m => m.id !== entry.id)]);
         setSearchOpen(false);
@@ -71,7 +71,7 @@ export default function App() {
       }
     } catch (e) {
       console.error('add failed:', e);
-      alert('添加失败！\n\n错误类型: ' + (e.name || '未知') + '\n错误信息: ' + (e.message || '无') + '\n错误代码: ' + (e.code || '无') + '\n\n完整错误请查看F12 Console');
+      alert('添加失败！\n\n错误: ' + (e.message || '未知错误') + '\n\n请查看F12 Console');
     }
   }, [user]);
 

@@ -214,9 +214,20 @@ export default function App() {
   // 加载中
   if (authLoading) {
     return (
-      <div className="loading-screen">
-        <div className="loading-flower">🌸</div>
-        <p>加载中...</p>
+      <div className="splash-screen">
+        <svg className="splash-logo splash-logo--large" viewBox="0 0 64 64">
+          <g transform="translate(32,32)">
+            <g><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#e89ab0" opacity="0.9"/></g>
+            <g transform="rotate(60)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#b06ab3" opacity="0.9"/></g>
+            <g transform="rotate(120)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#7b4cc7" opacity="0.9"/></g>
+            <g transform="rotate(180)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#e89ab0" opacity="0.9"/></g>
+            <g transform="rotate(240)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#b06ab3" opacity="0.9"/></g>
+            <g transform="rotate(300)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#7b4cc7" opacity="0.9"/></g>
+            <circle cx="0" cy="0" r="6" fill="#e8c84a"/>
+          </g>
+        </svg>
+        <h1 className="splash-title">HuaScope</h1>
+        <p className="splash-text">万花筒 · 观影簿</p>
       </div>
     );
   }

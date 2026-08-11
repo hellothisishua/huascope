@@ -39,17 +39,27 @@ function MovieCardInner({ entry, onClick, onStatusChange, isDetail, onClose, onU
   const handleSave = async () => {
     if (!user || saving) return;
     setSaving(true);
+    console.log('=== SAVE START ===');
+    console.log('Saving updates:', { 
+      status: editStatus, 
+      rating: editRating, 
+      review: editReview,
+      watchedDate: editWatchedDate,
+      location: editLocation
+    });
     try {
-      await onUpdate({ 
+      const result = await onUpdate({ 
         status: editStatus, 
         rating: editRating, 
         review: editReview,
         watchedDate: editWatchedDate,
         location: editLocation
       });
+      console.log('=== SAVE SUCCESS ===', result);
       onClose();
     } catch (e) {
-      alert('保存失败: ' + (e?.message || '未知错误'));
+      console.error('=== SAVE FAILED ===', e);
+      alert('保存失败！\n\n错误: ' + (e?.message || '未知错误') + '\n\n请截图F12 Console给我看');
     }
     setSaving(false);
   };

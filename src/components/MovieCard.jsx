@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getMovie, formatMovie } from '../lib/tmdb';
+import { getMovie, formatMovie, getSimilarMovies } from '../lib/tmdb';
 import { updateMovieDb, useAuth } from '../lib/store.jsx';
 
 const STATUS_MAP = {
@@ -126,6 +126,8 @@ function MovieCardInner({ entry, onClick, onStatusChange, isDetail, onClose, onU
               </div>
             )}
 
+            <SimilarMovies movieId={entry.id} />
+
             <div className="detail-section">
               <button 
                 className="btn btn-ghost btn-sm refresh-btn" 
@@ -249,6 +251,58 @@ function MovieCardInner({ entry, onClick, onStatusChange, isDetail, onClose, onU
 }
 
 export default SafeMovieCard;
+
+function SimilarMovies({ movieId }) {
+  const [similar, setSimilar] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const { user } = useAuth() || {};
+
+  const fetchSimilar = async () => {
+    setLoading(true);
+    try {
+      const data = await getSimilarMovies(movieId);
+      setSimilar(data.results?.slice(0, 6) || []);
+    } catch (e) {
+      console.error('Failed to fetch similar movies:', e);
+    }
+    setLoading(false);
+  };
+
+  const handleToggle = () => {
+    if (!expanded && similar.length === 0) {
+      fetchSimilar();
+    }
+    setExpanded(!expanded);
+  };
+
+  return (
+    <div className="detail-section">
+      <button 
+        className="btn btn-ghost btn-sm" 
+        onClick={handleToggle}
+      >
+        {expanded ? '收起' : '🎬 类似电影'}
+      </button>
+      {loading && <p className="refresh-hint">加载中...</p>}
+      {expanded && similar.length > 0 && (
+        <div className="similar-movies">
+          {similar.map(m => (
+            <div key={m.id} className="similar-movie" onClick={() => window.open(`https://www.themoviedb.org/movie/${m.id}`, '_blank')}>
+              {m.poster_path ? (
+                <img src={posterUrl(m.poster_path, 'w92')} alt="" className="similar-poster" />
+              ) : (
+                <div className="similar-poster similar-poster--empty">🎬</div>
+              )}
+              <div className="similar-title">{m.title}</div>
+              <div className="similar-year">{m.release_date?.slice(0, 4) || '—'}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function posterUrl(path, size = 'w342') {
   if (!path) return null;

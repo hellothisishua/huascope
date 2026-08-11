@@ -1034,6 +1034,93 @@ textarea { resize: vertical; min-height: 80px; }
   to { transform: rotate(360deg); }
 }
 
+/* ===== Pie Chart ===== */
+.pie-chart-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.pie-chart {
+  width: 200px;
+  height: 200px;
+}
+
+.pie-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  justify-content: center;
+}
+
+.pie-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.pie-legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.pie-legend-label {
+  color: var(--text);
+}
+
+.pie-legend-pct {
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+/* ===== Similar Movies ===== */
+.similar-movies {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.similar-movie {
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.similar-movie:hover {
+  transform: scale(1.05);
+}
+
+.similar-poster {
+  width: 100%;
+  aspect-ratio: 2/3;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.similar-poster--empty {
+  background: var(--surface-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.similar-title {
+  font-size: 11px;
+  margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.similar-year {
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
 /* ===== Petals Animation ===== */
 .petal {
   position: fixed;

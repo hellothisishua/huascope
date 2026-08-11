@@ -52,6 +52,10 @@ export async function getMovieCredits(id) {
   return tmdb(`/movie/${id}/credits`);
 }
 
+export async function getSimilarMovies(id) {
+  return tmdb(`/movie/${id}/similar`);
+}
+
 export function formatMovie(raw) {
   // 提取导演（可能有多个）
   const directors = (raw.credits?.crew?.filter(c => c.job === 'Director') || []).map(c => c.name);

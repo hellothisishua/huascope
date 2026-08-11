@@ -49,7 +49,7 @@ function MovieCardInner({ entry, onClick, onStatusChange, isDetail, onClose, onU
       });
       onClose();
     } catch (e) {
-      alert('保存失败: ' + e.message);
+      alert('保存失败: ' + (e?.message || '未知错误'));
     }
     setSaving(false);
   };

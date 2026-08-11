@@ -78,7 +78,7 @@ export default function App() {
   const handleUpdate = useCallback((id, updates) => {
     if (!user) return;
     setMovies(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
-    return updateMovieDb(user.id, id, updates).catch(e => console.error('sync failed:', e));
+    return updateMovieDb(user.id, id, updates);
   }, [user]);
 
   const handleRemove = useCallback((id) => {

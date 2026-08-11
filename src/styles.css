@@ -708,11 +708,23 @@ textarea { resize: vertical; min-height: 80px; }
   border-radius: 12px;
   background: var(--surface-2);
   transition: all 0.2s;
+  align-items: center;
 }
 
 .search-item:hover { background: var(--surface-3); }
 
 .search-item--exists { opacity: 0.5; }
+
+.search-item-main {
+  display: flex;
+  gap: 12px;
+  background: none;
+  border: none;
+  flex: 1;
+  cursor: pointer;
+  align-items: center;
+  text-align: left;
+}
 
 .search-item-img {
   width: 50px; height: 74px;
@@ -739,6 +751,20 @@ textarea { resize: vertical; min-height: 80px; }
 .search-item-overview { font-size: 12px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 
 .search-item-tag { font-size: 11px; color: var(--morandi-rose); margin-top: 4px; }
+
+.search-item-add {
+  padding: 8px 16px;
+  background: var(--morandi-rose);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.search-item-add:hover { opacity: 0.85; }
 
 .search-error {
   padding: 14px;

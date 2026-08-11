@@ -48,25 +48,26 @@ export default function SearchModal({ onClose, onSelect, existingIds, searchFn }
         {results.length > 0 && (
           <div className="search-results">
             {results.map(r => (
-              <button
-                key={r.id}
-                className={`search-item ${existingIds.includes(r.id) ? 'search-item--exists' : ''}`}
-                onClick={() => onSelect(r)}
-              >
-                {r.poster_path ? (
-                  <img src={posterUrl(r.poster_path, 'w92')} alt="" className="search-item-img" />
-                ) : (
-                  <div className="search-item-placeholder">🎬</div>
-                )}
-                <div className="search-item-info">
-                  <div className="search-item-title">
-                    {r.title}
-                    {r.release_date ? <span className="search-item-year"> ({r.release_date.slice(0, 4)})</span> : ''}
+              <div key={r.id} className={`search-item ${existingIds.includes(r.id) ? 'search-item--exists' : ''}`}>
+                <button className="search-item-main" onClick={() => onSelect(r)}>
+                  {r.poster_path ? (
+                    <img src={posterUrl(r.poster_path, 'w92')} alt="" className="search-item-img" />
+                  ) : (
+                    <div className="search-item-placeholder">🎬</div>
+                  )}
+                  <div className="search-item-info">
+                    <div className="search-item-title">
+                      {r.title}
+                      {r.release_date ? <span className="search-item-year"> ({r.release_date.slice(0, 4)})</span> : ''}
+                    </div>
+                    <div className="search-item-overview">{r.overview?.slice(0, 100) || '暂无简介'}</div>
+                    {existingIds.includes(r.id) && <div className="search-item-tag">已在清单中</div>}
                   </div>
-                  <div className="search-item-overview">{r.overview?.slice(0, 100) || '暂无简介'}</div>
-                  {existingIds.includes(r.id) && <div className="search-item-tag">已在清单中</div>}
-                </div>
-              </button>
+                </button>
+                {!existingIds.includes(r.id) && (
+                  <button className="search-item-add" onClick={() => onSelect(r)}>＋ 添加</button>
+                )}
+              </div>
             ))}
             {page < totalPages && (
               <button className="btn btn-ghost" onClick={() => doSearch(query, page + 1)}>

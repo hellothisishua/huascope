@@ -60,16 +60,19 @@ export default function App() {
     if (!user) return;
     try {
       const detail = await getMovie(raw.id);
+      if (!detail) throw new Error('无法获取电影详情');
       const movie = formatMovie(detail);
       const entry = await addMovieDb(user.id, movie, 'want');
       if (entry) {
         setMovies(prev => [entry, ...prev.filter(m => m.id !== entry.id)]);
+        setSearchOpen(false);
+      } else {
+        alert('添加失败，请重试');
       }
     } catch (e) {
       console.error('add failed:', e);
-      alert('添加失败: ' + e.message);
+      alert('添加失败: ' + e.message + '\n\n请检查网络后重试');
     }
-    setSearchOpen(false);
   }, [user]);
 
   const handleUpdate = useCallback((id, updates) => {

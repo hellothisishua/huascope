@@ -33,6 +33,7 @@ function MovieCardInner({ entry, onClick, onStatusChange, isDetail, onClose, onU
   const [editRating, setEditRating] = useState(entry.rating);
   const [editReview, setEditReview] = useState(entry.review);
   const [editWatchedDate, setEditWatchedDate] = useState(entry.watchedDate);
+  const [editLocation, setEditLocation] = useState(entry.location);
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
@@ -43,7 +44,8 @@ function MovieCardInner({ entry, onClick, onStatusChange, isDetail, onClose, onU
         status: editStatus, 
         rating: editRating, 
         review: editReview,
-        watchedDate: editWatchedDate
+        watchedDate: editWatchedDate,
+        location: editLocation
       });
       onClose();
     } catch (e) {
@@ -166,15 +168,38 @@ function MovieCardInner({ entry, onClick, onStatusChange, isDetail, onClose, onU
             </div>
 
             {editStatus === 'watched' && (
-              <div className="detail-section">
-                <label>观看时间</label>
-                <input
-                  type="month"
-                  className="date-input"
-                  value={editWatchedDate || ''}
-                  onChange={e => setEditWatchedDate(e.target.value)}
-                />
-              </div>
+              <>
+                <div className="detail-section">
+                  <label>观看时间</label>
+                  <input
+                    type="month"
+                    className="date-input"
+                    value={editWatchedDate || ''}
+                    onChange={e => setEditWatchedDate(e.target.value)}
+                  />
+                </div>
+                <div className="detail-section">
+                  <label>观看地点</label>
+                  <select 
+                    className="date-input"
+                    value={editLocation || ''}
+                    onChange={e => setEditLocation(e.target.value)}
+                  >
+                    <option value="">选择地点...</option>
+                    <option value="🏠 家里">🏠 家里</option>
+                    <option value="🎬 电影院">🎬 电影院</option>
+                    <option value="✈️ 飞机上">✈️ 飞机上</option>
+                    <option value="🚄 高铁上">🚄 高铁上</option>
+                    <option value="🏨 酒店">🏨 酒店</option>
+                    <option value="🏖 度假">🏖 度假</option>
+                    <option value="🏥 月子中心">🏥 月子中心</option>
+                    <option value="👶 产房">👶 产房</option>
+                    <option value="🌍 国外">🌍 国外</option>
+                    <option value="🚗 车上">🚗 车上</option>
+                    <option value="📱 手机上">📱 手机上</option>
+                  </select>
+                </div>
+              </>
             )}
 
             <div className="detail-section">
@@ -245,6 +270,7 @@ function MovieCardInner({ entry, onClick, onStatusChange, isDetail, onClose, onU
           )}
         </div>
         {entry.review && <div className="movie-card-review-preview">"{entry.review.slice(0, 80)}{entry.review.length > 80 ? '...' : ''}"</div>}
+        {entry.location && <div className="movie-card-location">{entry.location}</div>}
       </div>
     </div>
   );

@@ -260,6 +260,7 @@ input, select, textarea { font-family: inherit; color: inherit; }
   font-style: italic;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+.movie-card-location { font-size: 11px; color: var(--morandi-sage); margin-top: 4px; }
 
 /* ===== Empty State ===== */
 .empty { text-align: center; padding: 60px 20px; color: var(--text-dim); }

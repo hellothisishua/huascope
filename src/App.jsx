@@ -109,6 +109,7 @@ export default function App() {
       rating: m.rating,
       review: m.review,
       watchedDate: m.watchedDate,
+      location: m.location,
       director: m.movie?.director,
       cast: m.movie?.cast,
       genres: m.movie?.genres,

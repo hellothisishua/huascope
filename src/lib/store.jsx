@@ -95,6 +95,7 @@ function rowToEntry(row) {
       review: row.review || '',
       addedAt: row.added_at || new Date().toISOString(),
       watchedDate: row.watched_date || '',
+      location: row.location || '',
       movie: {
         id: movie.id || row.id || 0,
         title: movie.title || movie.titleCn || '未知电影',
@@ -192,6 +193,7 @@ export async function updateMovieDb(userId, id, updates) {
     if (updates?.rating !== undefined) row.rating = updates.rating;
     if (updates?.review !== undefined) row.review = updates.review;
     if (updates?.watchedDate !== undefined) row.watched_date = updates.watchedDate;
+    if (updates?.location !== undefined) row.location = updates.location;
     if (updates?.movie) row.movie_data = updates.movie;
 
     const { data, error } = await supabase

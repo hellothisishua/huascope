@@ -1087,6 +1087,10 @@ textarea { resize: vertical; min-height: 80px; }
 .similar-movie {
   cursor: pointer;
   transition: transform 0.2s;
+  aspect-ratio: 2/3;
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .similar-movie:hover {
@@ -1095,17 +1099,20 @@ textarea { resize: vertical; min-height: 80px; }
 
 .similar-poster {
   width: 100%;
-  aspect-ratio: 2/3;
+  height: 100%;
   border-radius: 8px;
   object-fit: cover;
 }
 
 .similar-poster--empty {
+  width: 100%;
+  height: 100%;
   background: var(--surface-3);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24px;
+  border-radius: 8px;
 }
 
 .similar-title {
@@ -1114,11 +1121,20 @@ textarea { resize: vertical; min-height: 80px; }
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+  color: #fff;
+  padding: 8px 6px 4px;
+  border-radius: 0 0 8px 8px;
 }
 
 .similar-year {
   font-size: 10px;
   color: var(--text-dim);
+  display: none;
 }
 
 /* ===== Petals Animation ===== */

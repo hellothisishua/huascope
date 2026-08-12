@@ -1,15 +1,14 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import './styles.css';
 import { loadMovies, addMovieDb, updateMovieDb, removeMovieDb, encodeShare, decodeShare, useAuth } from './lib/store.jsx';
 import { searchMovies, getMovie, formatMovie } from './lib/tmdb';
+import AuthScreen from './components/AuthScreen';
 import SearchModal from './components/SearchModal';
-import MovieCard from './components/MovieCard';
-import FilterBar from './components/FilterBar';
-import PosterWall from './components/PosterWall';
 import MoviesChart from './components/MoviesChart';
+import PosterWall from './components/PosterWall';
+import MovieCard from './components/MovieCard';
 import RandomPick from './components/RandomPick';
 import ShareModal from './components/ShareModal';
-import AuthScreen from './components/AuthScreen';
+import './styles.css';
 
 const VIEWS = { list: 'list', poster: 'poster', stats: 'stats' };
 
@@ -26,8 +25,6 @@ export default function App() {
   const [sortBy, setSortBy] = useState('added');
   const [randomOpen, setRandomOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
-  const [importOpen, setImportOpen] = useState(false);
-  const [importCode, setImportCode] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -46,14 +43,6 @@ export default function App() {
     }
   }, [user]);
 
-  const handleRefresh = async () => {
-    if (!user) return;
-    setRefreshing(true);
-    const data = await loadMovies(user.id);
-    if (Array.isArray(data)) setMovies(data);
-    setRefreshing(false);
-  };
-
   const handleAdd = useCallback(async (raw, status) => {
     if (!user) return;
     try {
@@ -66,7 +55,7 @@ export default function App() {
         setSearchOpen(false);
       }
     } catch (e) {
-      alert('添加失败！错误: ' + (e.message || '未知错误'));
+      alert('添加失败: ' + (e.message || '未知错误'));
     }
   }, [user]);
 
@@ -78,65 +67,34 @@ export default function App() {
 
   const handleRemove = useCallback((id) => {
     if (!user) return;
-    if (!confirm('确定删除这部电影？')) return;
+    if (!confirm('确定删除？')) return;
     setMovies(prev => prev.filter(m => m.id !== id));
     setDetailId(null);
     removeMovieDb(user.id, id);
   }, [user]);
 
-  const handleReset = useCallback(async () => {
-    if (!user) return;
-    if (!confirm('确定清空所有观影记录？此操作不可恢复。')) return;
-    for (const m of movies) {
-      await removeMovieDb(user.id, m.id).catch(() => {});
-    }
-    setMovies([]);
-  }, [user, movies]);
-
   const handleExport = useCallback(() => {
-    if (!movies || movies.length === 0) { alert('没有可导出的数据'); return; }
-    const data = movies.map(m => ({
-      id: m.id, title: m.movie?.title, titleCn: m.movie?.titleCn,
-      year: m.movie?.year, status: m.status, rating: m.rating, review: m.review,
-      watchedDate: m.watchedDate, location: m.location,
-    }));
+    if (!movies.length) return alert('没有数据');
+    const data = movies.map(m => ({ id: m.id, title: m.movie?.title, status: m.status, rating: m.rating, review: m.review }));
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `huascope-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `huascope-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }, [movies]);
 
-  const handleImport = useCallback(async () => {
-    if (!user) return;
-    const entries = decodeShare(importCode);
-    if (entries.length === 0) { alert('无效的分享码'); return; }
-    for (const e of entries) {
-      try {
-        const detail = await getMovie(e.id);
-        const movie = formatMovie(detail);
-        const entry = await addMovieDb(user.id, movie, e.status);
-        if (e.rating > 0) await updateMovieDb(user.id, e.id, { rating: e.rating });
-        setMovies(prev => {
-          const filtered = prev.filter(m => m.id !== entry.id);
-          return [{ ...entry, rating: e.rating || 0 }, ...filtered];
-        });
-      } catch {}
-    }
-    setImportOpen(false);
-    setImportCode('');
-  }, [user, importCode]);
+  const handleReset = useCallback(async () => {
+    if (!user || !confirm('确定清空所有记录？')) return;
+    for (const m of movies) await removeMovieDb(user.id, m.id).catch(() => {});
+    setMovies([]);
+  }, [user, movies]);
 
   const allGenres = useMemo(() => {
     try {
       const set = new Set();
-      movies.forEach(m => {
-        if (m.movie && Array.isArray(m.movie.genres)) {
-          m.movie.genres.forEach(g => set.add(g));
-        }
-      });
+      movies.forEach(m => m.movie?.genres?.forEach(g => set.add(g)));
       return [...set].sort();
     } catch { return []; }
   }, [movies]);
@@ -157,7 +115,6 @@ export default function App() {
       if (sortBy === 'added') list.sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
       else if (sortBy === 'year') list.sort((a, b) => Number(b.movie?.year) - Number(a.movie?.year));
       else if (sortBy === 'rating') list.sort((a, b) => b.rating - a.rating);
-      else if (sortBy === 'title') list.sort((a, b) => (a.movie?.title || '').localeCompare(b.movie?.title || ''));
       return list;
     } catch { return []; }
   }, [movies, filterStatus, filterYear, filterGenre, sortBy]);
@@ -166,152 +123,100 @@ export default function App() {
 
   if (authLoading) {
     return (
-      <div className="splash-screen">
-        <svg className="splash-logo splash-logo--large" viewBox="0 0 64 64" width="80" height="80">
-          <g transform="translate(32,32)">
-            <ellipse cx="0" cy="-14" rx="7" ry="14" fill="#e89ab0" opacity="0.9"/>
-            <g transform="rotate(60)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#b06ab3" opacity="0.9"/></g>
-            <g transform="rotate(120)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#7b4cc7" opacity="0.9"/></g>
-            <ellipse cx="0" cy="-14" rx="7" ry="14" fill="#e89ab0" opacity="0.9"/>
-            <g transform="rotate(240)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#b06ab3" opacity="0.9"/></g>
-            <g transform="rotate(300)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#7b4cc7" opacity="0.9"/></g>
-            <circle cx="0" cy="0" r="6" fill="#e8c84a"/>
-          </g>
-        </svg>
+      <div className="splash">
+        <span className="splash-flower">❀</span>
         <h1 className="splash-title">HuaScope</h1>
-        <p className="splash-text">万花筒 · 观影簿</p>
+        <p className="splash-sub">万花筒 · 观影簿</p>
       </div>
     );
   }
 
   if (!user) return <AuthScreen />;
 
-  const flowerSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="40" height="40"><g transform="translate(32,32)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#e89ab0" opacity="0.9"/><g transform="rotate(60)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#b06ab3" opacity="0.9"/></g><g transform="rotate(120)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#7b4cc7" opacity="0.9"/></g><g transform="rotate(180)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#e89ab0" opacity="0.9"/></g><g transform="rotate(240)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#b06ab3" opacity="0.9"/></g><g transform="rotate(300)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#7b4cc7" opacity="0.9"/></g><circle cx="0" cy="0" r="6" fill="#e8c84a"/></g></svg>`;
-
-  const modals = (
-    <>
-      {searchOpen && (
-        <SearchModal
-          onClose={() => setSearchOpen(false)}
-          onSelect={handleAdd}
-          existingIds={movies.map(m => m.id)}
-          searchFn={searchMovies}
-        />
-      )}
-      {detailMovie && (
-        <MovieCard
-          isDetail
-          entry={detailMovie}
-          onClose={() => setDetailId(null)}
-          onUpdate={(updates) => handleUpdate(detailMovie.id, updates)}
-          onRemove={() => handleRemove(detailMovie.id)}
-        />
-      )}
-      {randomOpen && <RandomPick movies={movies} onClose={() => setRandomOpen(false)} />}
-      {shareOpen && <ShareModal movies={movies} onClose={() => setShareOpen(false)} />}
-      {importOpen && (
-        <div className="overlay">
-          <div className="overlay-backdrop" onClick={() => setImportOpen(false)}></div>
-          <div className="modal">
-            <button className="modal-close" onClick={() => setImportOpen(false)}>x</button>
-            <h2>📥 导入分享码</h2>
-            <textarea
-              className="share-input"
-              value={importCode}
-              onChange={e => setImportCode(e.target.value)}
-              placeholder="粘贴朋友发给你的分享码..."
-              rows={4}
-            />
-            <button className="btn btn-primary share-copy-btn" onClick={handleImport}>
-              导入
-            </button>
-          </div>
-        </div>
-      )}
-    </>
-  );
-
   return (
     <div className="app">
+      {/* Header */}
       <header className="header">
-        <div className="header-left">
-          <svg className="header-logo" viewBox="0 0 64 64" width="40" height="40">
-            <g transform="translate(32,32)">
-              <ellipse cx="0" cy="-14" rx="7" ry="14" fill="#e89ab0" opacity="0.9"/>
-              <g transform="rotate(60)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#b06ab3" opacity="0.9"/></g>
-              <g transform="rotate(120)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#7b4cc7" opacity="0.9"/></g>
-              <ellipse cx="0" cy="-14" rx="7" ry="14" fill="#e89ab0" opacity="0.9"/>
-              <g transform="rotate(240)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#b06ab3" opacity="0.9"/></g>
-              <g transform="rotate(300)"><ellipse cx="0" cy="-14" rx="7" ry="14" fill="#7b4cc7" opacity="0.9"/></g>
-              <circle cx="0" cy="0" r="6" fill="#e8c84a"/>
-            </g>
-          </svg>
-          <div>
-            <h1>HuaScope</h1>
-            <span className="header-sub">万花筒 · {user.email?.split('@')[0] || '观影簿'}</span>
-          </div>
+        <div className="header-title">
+          <span className="logo-flower">❀</span>
+          <h1>HuaScope</h1>
         </div>
         <div className="header-actions">
-          <button className="icon-btn" onClick={() => setRandomOpen(true)} title="随机抽一部">🎲</button>
-          <button className="icon-btn" onClick={() => setShareOpen(true)} title="分享">🔗</button>
-          <button className="icon-btn" onClick={() => signOut()} title="退出">🚪</button>
+          <button className="btn-icon" onClick={() => setRandomOpen(true)}>🎲</button>
+          <button className="btn-icon" onClick={() => setShareOpen(true)}>🔗</button>
+          <button className="btn-icon" onClick={() => signOut()}>🚪</button>
         </div>
       </header>
 
-      <div className="view-tabs">
-        {[
-          [VIEWS.list, '📋 列表'],
-          [VIEWS.poster, '🖼 海报墙'],
-          [VIEWS.stats, '📊 统计'],
-        ].map(([v, label]) => (
-          <button
-            key={v}
-            className={`view-tab ${view === v ? 'view-tab--active' : ''}`}
-            onClick={() => setView(v)}
-          >{label}</button>
-        ))}
+      {/* Tabs */}
+      <div className="tabs">
+        <button className={`tab ${view === VIEWS.list ? 'tab-active' : ''}`} onClick={() => setView(VIEWS.list)}>📋 列表</button>
+        <button className={`tab ${view === VIEWS.poster ? 'tab-active' : ''}`} onClick={() => setView(VIEWS.poster)}>🖼 海报墙</button>
+        <button className={`tab ${view === VIEWS.stats ? 'tab-active' : ''}`} onClick={() => setView(VIEWS.stats)}>📊 统计</button>
       </div>
 
-      <FilterBar
-        status={filterStatus} onStatusChange={setFilterStatus}
-        year={filterYear} onYearChange={setFilterYear}
-        genre={filterGenre} onGenreChange={setFilterGenre}
-        sort={sortBy} onSortChange={setSortBy}
-        years={allYears}
-        genres={allGenres}
-      />
+      {/* Filters */}
+      <div className="filters">
+        <div className="filter-row">
+          <select className="filter-select" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
+            <option value="all">全部状态</option>
+            <option value="want">🌱 想看</option>
+            <option value="watching">🍃 在看</option>
+            <option value="watched">🌸 看过</option>
+          </select>
+          <select className="filter-select" value={filterYear} onChange={e => setFilterYear(e.target.value)}>
+            <option value="">全部年份</option>
+            {allYears.map(y => <option key={y} value={y}>{y}</option>)}
+          </select>
+        </div>
+        <div className="filter-row">
+          <select className="filter-select" value={filterGenre} onChange={e => setFilterGenre(e.target.value)}>
+            <option value="">全部类型</option>
+            {allGenres.map(g => <option key={g} value={g}>{g}</option>)}
+          </select>
+          <select className="filter-select" value={sortBy} onChange={e => setSortBy(e.target.value)}>
+            <option value="added">按添加时间</option>
+            <option value="year">按年份</option>
+            <option value="rating">按评分</option>
+          </select>
+        </div>
+      </div>
 
-      <main className="main">
-        {refreshing && (
-          <div className="refresh-indicator">⟳ 刷新中...</div>
-        )}
+      {/* Content */}
+      <main className="content">
         {loading ? (
-          <div className="empty"><p>⏳ 正在从云端加载...</p></div>
+          <div className="empty"><p>⏳ 加载中...</p></div>
         ) : view === VIEWS.list && (
           filtered.length === 0 ? (
             <div className="empty">
-              <p>🎬 还没有电影记录</p>
-              <p className="empty-sub">点击下方 + 按钮搜索并添加你的第一部电影</p>
+              <span className="empty-flower">❀</span>
+              <p>还没有电影记录</p>
+              <p className="empty-hint">点击下方 + 添加第一部电影</p>
             </div>
           ) : (
-            <div className="movie-list">
+            <div className="list">
               {filtered.map(m => (
-                <MovieCard
-                  key={m.id}
-                  entry={m}
-                  onClick={() => setDetailId(m.id)}
-                  onStatusChange={(s) => handleUpdate(m.id, { status: s })}
-                />
+                <div key={m.id} className="card" onClick={() => setDetailId(m.id)}>
+                  <img className="card-poster" src={m.movie?.poster ? `https://image.tmdb.org/t/p/w185${m.movie.poster}` : ''} alt="" />
+                  <div className="card-info">
+                    <div className="card-title">{m.movie?.title || '未知'}</div>
+                    <div className="card-meta">{m.movie?.year} · {m.movie?.runtime}min</div>
+                    <div className="card-tags">
+                      <span className={`tag tag-${m.status}`}>
+                        {m.status === 'want' ? '🌱 想看' : m.status === 'watching' ? '🍃 在看' : '🌸 看过'}
+                      </span>
+                      {m.rating > 0 && <span className="tag tag-rating">{'★'.repeat(m.rating)}</span>}
+                    </div>
+                  </div>
+                  <span className="card-flower">❀</span>
+                </div>
               ))}
             </div>
           )
         )}
 
         {view === VIEWS.poster && (
-          <PosterWall
-            movies={filtered}
-            onClick={(id) => setDetailId(id)}
-          />
+          <PosterWall movies={filtered} onClick={(id) => setDetailId(id)} />
         )}
 
         {view === VIEWS.stats && (
@@ -319,17 +224,27 @@ export default function App() {
         )}
       </main>
 
-      <button className="fab" onClick={() => setSearchOpen(true)} title="添加电影">🌸</button>
+      {/* FAB */}
+      <button className="fab" onClick={() => setSearchOpen(true)}>❀</button>
 
-      <div className="movie-count">{movies.length} 部 · {view === VIEWS.list ? `${filtered.length} 部可见` : ''}</div>
+      {/* Footer */}
+      <footer className="footer">
+        <span>{movies.length} 部</span>
+        <div className="footer-actions">
+          <button className="btn-text" onClick={handleExport}>📤 导出</button>
+          <button className="btn-text btn-danger" onClick={handleReset}>🗑 清空</button>
+        </div>
+      </footer>
 
-      <div className="settings-bar">
-        <button className="btn-text" onClick={handleExport}>📤 导出</button>
-        <button className="btn-text" onClick={() => setImportOpen(true)}>📥 导入分享码</button>
-        <button className="btn-text btn-text--danger" onClick={handleReset}>🗑 清空</button>
-      </div>
-
-      {modals}
+      {/* Modals */}
+      {searchOpen && (
+        <SearchModal onClose={() => setSearchOpen(false)} onSelect={handleAdd} existingIds={movies.map(m => m.id)} searchFn={searchMovies} />
+      )}
+      {detailMovie && (
+        <MovieCard isDetail entry={detailMovie} onClose={() => setDetailId(null)} onUpdate={(u) => handleUpdate(detailMovie.id, u)} onRemove={() => handleRemove(detailMovie.id)} />
+      )}
+      {randomOpen && <RandomPick movies={movies} onClose={() => setRandomOpen(false)} />}
+      {shareOpen && <ShareModal movies={movies} onClose={() => setShareOpen(false)} />}
     </div>
   );
 }

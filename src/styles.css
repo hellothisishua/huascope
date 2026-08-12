@@ -13,7 +13,7 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 .app {
-  max-width: 500px;
+  max-width: min(500px, 100%);
   margin: 0 auto;
   min-height: 100vh;
   padding-bottom: 100px;
@@ -44,6 +44,7 @@ body {
   display: flex; align-items: center; justify-content: space-between;
   border-bottom: 1px solid #E0D8D0;
   overflow: hidden; max-width: 100%;
+  box-sizing: border-box;
 }
 .header-left { display: flex; align-items: center; gap: 12px; min-width: 0; overflow: hidden; }
 .header-logo { width: 40px; height: 40px; animation: spin 20s linear infinite; flex-shrink: 0; }
@@ -71,6 +72,7 @@ body {
   display: flex; gap: 8px;
   padding: 12px 20px;
   overflow: hidden; max-width: 100%;
+  box-sizing: border-box;
 }
 .view-tab {
   flex: 1; padding: 10px;
@@ -90,8 +92,9 @@ body {
 .filter-bar {
   padding: 8px 20px;
   overflow: hidden; max-width: 100%;
+  box-sizing: border-box;
 }
-.filter-row { display: flex; gap: 8px; margin-bottom: 6px; max-width: 100%; }
+.filter-row { display: flex; gap: 8px; margin-bottom: 6px; max-width: 100%; overflow: hidden; }
 .filter-select {
   flex: 1; padding: 10px 16px;
   background: #F8F5F2;
@@ -110,15 +113,15 @@ body {
   padding: 8px 20px;
   overflow: hidden;
   width: 100%; max-width: 100%;
+  box-sizing: border-box;
 }
 
-/* ===== Movie List (redesigned to match poster wall & stats) ===== */
+/* ===== Movie List — match poster wall & stats visual weight ===== */
 .movie-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   max-width: 100%;
-  overflow: hidden;
 }
 .movie-card {
   display: flex;
@@ -131,22 +134,23 @@ body {
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   max-width: 100%;
   overflow: hidden;
+  align-items: flex-start;
 }
 .movie-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
 .movie-card--watched { border-left: 4px solid #95B595; }
 .movie-card-left { flex-shrink: 0; }
 .movie-card-poster {
-  width: 68px; height: 100px;
+  width: 64px; height: 94px;
   border-radius: 14px;
   object-fit: cover;
   background: #F0EBE6;
 }
 .movie-card-poster--empty {
   display: flex; align-items: center; justify-content: center;
-  font-size: 30px;
+  font-size: 28px;
 }
 .movie-card-body {
-  flex: 1; min-width: 0; overflow: hidden;
+  flex: 1; min-width: 0;
 }
 .movie-card-title {
   font-size: 15px; font-weight: 600;
@@ -191,12 +195,14 @@ body {
 }
 .movie-card-location { font-size: 11px; color: #95B595; margin-top: 4px; }
 
-/* ===== Poster Wall (already good) ===== */
+/* ===== Poster Wall — unified width ===== */
 .poster-wall {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   width: 100%; max-width: 100%;
+  padding: 0;
+  margin: 0;
 }
 .poster-wall-item {
   aspect-ratio: 2/3;
@@ -232,7 +238,7 @@ body {
 .poster-wall-overlay-year { font-size: 10px; opacity: 0.8; }
 .poster-wall-overlay-rating { font-size: 10px; color: #D4B595; }
 
-/* ===== Stats (already good) ===== */
+/* ===== Stats — unified width ===== */
 .stats-page {
   display: flex; flex-direction: column; gap: 16px;
   width: 100%; max-width: 100%; overflow: hidden;
@@ -241,10 +247,10 @@ body {
   background: #F8F5F2;
   border: 1px solid #E0D8D0;
   border-radius: 24px;
-  padding: 32px 24px;
+  padding: 24px 20px;
   text-align: center;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  max-width: 100%;
+  max-width: 100%; overflow: hidden;
 }
 .stats-hero-main { margin-bottom: 20px; }
 .stats-hero-num { font-size: 64px; font-weight: 700; color: #5A504A; line-height: 1; }
@@ -263,22 +269,22 @@ body {
   background: #F8F5F2;
   border: 1px solid #E0D8D0;
   border-radius: 24px;
-  padding: 20px;
+  padding: 20px 16px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   max-width: 100%; overflow: hidden;
 }
 .stats-section h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #5A504A; }
 .chart-container {
   display: flex; align-items: flex-end;
-  gap: 8px; height: 100px; padding: 0 4px;
+  gap: 8px; height: 100px; padding: 0;
   overflow-x: auto; overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-  max-width: 100%;
+  max-width: 100%; width: 100%;
 }
 .chart-bar {
-  flex: 1; display: flex;
+  flex: 1; min-width: 32px; max-width: 80px;
+  display: flex;
   flex-direction: column; align-items: center; height: 100%;
-  min-width: 32px;
 }
 .chart-bar-track {
   flex: 1; width: 100%;
@@ -296,14 +302,15 @@ body {
 .chart-bar-label { font-size: 10px; color: #8A8078; margin-top: 6px; }
 .chart-bar-num { font-size: 10px; color: #5A504A; font-weight: 500; }
 .genre-bars { display: flex; flex-direction: column; gap: 10px; max-width: 100%; }
-.genre-bar { display: flex; align-items: center; gap: 10px; max-width: 100%; }
+.genre-bar { display: flex; align-items: center; gap: 10px; max-width: 100%; min-width: 0; }
 .genre-bar-label {
-  width: 60px; font-size: 13px;
-  color: #5A504A; text-align: right; flex-shrink: 0;
+  width: 60px; min-width: 60px; flex-shrink: 0;
+  font-size: 13px;
+  color: #5A504A; text-align: right;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .genre-bar-track {
-  flex: 1; height: 14px; min-width: 0;
+  flex: 1; height: 14px; min-width: 40px;
   background: #F0EBE6;
   border-radius: 7px; overflow: hidden;
 }
@@ -318,14 +325,15 @@ body {
   width: 28px; text-align: right; font-size: 13px;
 }
 .year-bars { display: flex; flex-direction: column; gap: 10px; max-width: 100%; }
-.year-bar { display: flex; align-items: center; gap: 10px; max-width: 100%; }
+.year-bar { display: flex; align-items: center; gap: 10px; max-width: 100%; min-width: 0; }
 .year-bar-label {
-  width: 50px; font-size: 13px;
-  color: #5A504A; text-align: right; flex-shrink: 0;
+  width: 50px; min-width: 50px; flex-shrink: 0;
+  font-size: 13px;
+  color: #5A504A; text-align: right;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .year-bar-track {
-  flex: 1; height: 14px; min-width: 0;
+  flex: 1; height: 14px; min-width: 40px;
   background: #F0EBE6;
   border-radius: 7px; overflow: hidden;
 }
@@ -339,9 +347,9 @@ body {
   color: #5A504A; font-weight: 500;
   width: 28px; text-align: right; font-size: 13px;
 }
-.pie-chart-container { display: flex; flex-direction: column; align-items: center; gap: 16px; max-width: 100%; }
-.pie-chart { width: 200px; height: 200px; max-width: 100%; }
-.pie-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: center; max-width: 100%; }
+.pie-chart-container { display: flex; flex-direction: column; align-items: center; gap: 16px; max-width: 100%; overflow: hidden; }
+.pie-chart { width: 200px; height: 200px; max-width: 100%; flex-shrink: 0; }
+.pie-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: center; max-width: 100%; overflow: hidden; }
 .pie-legend-item { display: flex; align-items: center; gap: 6px; font-size: 13px; }
 .pie-legend-color { width: 12px; height: 12px; border-radius: 4px; }
 
@@ -563,3 +571,24 @@ textarea { resize: vertical; min-height: 80px; }
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #E5DDD5; border-radius: 3px; }
+
+/* ===== Mobile: keep all 3 views visually consistent ===== */
+@media (max-width: 480px) {
+  .header { padding: 14px 20px; }
+  .view-tabs { padding: 12px 20px; }
+  .filter-bar { padding: 8px 20px; }
+  .main { padding: 12px 20px; }
+
+  /* 列表卡片：和海报墙/统计页宽度完全一致，不缩小不隐藏 */
+  .movie-list { gap: 14px; }
+  .movie-card { padding: 16px; gap: 14px; border-radius: 24px; }
+  .movie-card-poster { width: 64px; height: 94px; border-radius: 14px; }
+
+  .stats-hero { padding: 32px 24px; }
+  .stats-section { padding: 20px; }
+
+  .poster-wall { gap: 12px; }
+
+  .fab { right: 20px; bottom: 80px; }
+  .settings-bar { padding: 20px; }
+}

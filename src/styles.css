@@ -1,21 +1,22 @@
 /* ==========================================================================
-   HuaScope 万花筒 — 统一样式系统
-   按照 UI_REFACTOR_BRIEF.md 规范重写
+   HuaScope 万花筒 — 全新 UI v3.0
+   莫兰迪粘土风 × 五瓣花花 ❀
+   基于小红书6屏布局 + 莫兰迪色系 + 五瓣花花装饰
    ========================================================================== */
 
 /* ============================
    1. CSS 变量
    ============================ */
 :root {
-  /* 颜色 */
+  /* 莫兰迪颜色 */
   --clay-rose: #E8C5C5;
   --clay-rose-deep: #D4A5A5;
   --clay-sage: #B5C5B5;
   --clay-sage-deep: #95B595;
   --clay-blue: #B5B5D6;
   --clay-lavender: #C5B5D6;
-  --clay-cream: #E8D8C8;
   --clay-warm: #D4B595;
+  --clay-cream: #E8D8C8;
   --clay-surface: #F8F5F2;
   --clay-surface-2: #F0EBE6;
   --clay-surface-3: #E5DDD5;
@@ -594,7 +595,7 @@ textarea { resize: vertical; min-height: 80px; }
 .share-copy-btn { width: 100%; border-radius: var(--radius-md); padding: 14px; }
 
 /* ============================
-   21. 刷新指示器 + 闪烁
+   21. 刷新指示器
    ============================ */
 .refresh-indicator { text-align: center; padding: var(--space-md); color: var(--clay-rose-deep); font-size: 13px; animation: spin 1s linear infinite; }
 

@@ -265,7 +265,27 @@ body {
 .genre-bar:nth-child(3) .genre-bar-fill { background: #B5B5D6; }
 .genre-bar:nth-child(4) .genre-bar-fill { background: #C5B5D6; }
 .genre-bar:nth-child(5) .genre-bar-fill { background: #D4B595; }
-.genre-bar-num {
+.year-bars { display: flex; flex-direction: column; gap: 10px; }
+.year-bar { display: flex; align-items: center; gap: 10px; }
+.year-bar-label {
+  width: 50px; font-size: 13px;
+  color: #5A504A; text-align: right; flex-shrink: 0;
+}
+.year-bar-track {
+  flex: 1; height: 14px;
+  background: #F0EBE6;
+  border-radius: 7px; overflow: hidden;
+}
+.year-bar-fill {
+  height: 100%; border-radius: 7px;
+  background: #D4A5A5;
+}
+.year-bar:nth-child(1) .year-bar-fill { background: #D4A5A5; }
+.year-bar:nth-child(2) .year-bar-fill { background: #95B595; }
+.year-bar:nth-child(3) .year-bar-fill { background: #B5B5D6; }
+.year-bar:nth-child(4) .year-bar-fill { background: #C5B5D6; }
+.year-bar:nth-child(5) .year-bar-fill { background: #D4B595; }
+.year-bar-num {
   color: #5A504A; font-weight: 500;
   width: 28px; text-align: right; font-size: 13px;
 }

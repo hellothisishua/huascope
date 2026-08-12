@@ -99,38 +99,38 @@ body {
 .main { padding: 8px 20px; }
 
 /* Movie List */
-.movie-list { display: flex; flex-direction: column; gap: 12px; }
+.movie-list { display: flex; flex-direction: column; gap: 8px; }
 .movie-card {
   display: flex;
-  gap: 14px;
+  gap: 10px;
   background: #F8F5F2;
   border: 1px solid #E0D8D0;
-  border-radius: 24px;
-  padding: 16px;
+  border-radius: 18px;
+  padding: 12px;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
-.movie-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+.movie-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
 .movie-card--watched { border-left: 4px solid #95B595; }
 .movie-card-left { flex-shrink: 0; }
 .movie-card-poster {
-  width: 68px; height: 100px;
-  border-radius: 14px;
+  width: 56px; height: 82px;
+  border-radius: 12px;
   object-fit: cover;
   background: #F0EBE6;
 }
 .movie-card-poster--empty {
   display: flex; align-items: center; justify-content: center;
-  font-size: 30px;
+  font-size: 24px;
 }
 .movie-card-body { flex: 1; min-width: 0; }
 .movie-card-title {
-  font-size: 15px; font-weight: 600;
-  margin-bottom: 4px;
+  font-size: 14px; font-weight: 600;
+  margin-bottom: 3px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.movie-card-meta { font-size: 12px; color: #8A8078; margin-bottom: 6px; }
-.movie-card-genres { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+.movie-card-meta { font-size: 11px; color: #8A8078; margin-bottom: 4px; }
+.movie-card-genres { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
 .genre-tag {
   font-size: 10px;
   padding: 2px 8px;
@@ -152,10 +152,10 @@ body {
 .movie-card-stars { font-size: 12px; color: #D4B595; }
 .movie-card-review-preview {
   font-size: 12px; color: #8A8078;
-  margin-top: 6px; font-style: italic;
+  margin-top: 4px; font-style: italic;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.movie-card-location { font-size: 11px; color: #95B595; margin-top: 4px; }
+.movie-card-location { font-size: 11px; color: #95B595; margin-top: 2px; }
 
 /* Poster Wall */
 .poster-wall {

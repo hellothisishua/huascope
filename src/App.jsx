@@ -25,6 +25,8 @@ export default function App() {
   const [sortBy, setSortBy] = useState('added');
   const [randomOpen, setRandomOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importCode, setImportCode] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {

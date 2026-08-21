@@ -112,10 +112,10 @@ export default function MoviesChart({ movies }) {
           <div className="bars">
             {monthlyData.map(([month, count]) => (
               <div key={month} className="bar">
-                <div className="bar-track">
-                  <div className="bar-fill" style={{ height: `${(count / maxMonthly) * 100}%` }}></div>
-                </div>
                 <div className="bar-label">{month}</div>
+                <div className="bar-track">
+                  <div className="bar-fill" style={{ width: `${(count / maxMonthly) * 100}%` }}></div>
+                </div>
                 <div className="bar-count">{count}</div>
               </div>
             ))}

@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { loadMovies, addMovieDb, updateMovieDb, removeMovieDb, encodeShare, decodeShare, useAuth } from './lib/store.jsx';
 import { searchMovies, getMovie, formatMovie } from './lib/tmdb';
+import { bind } from 'cuelume';
 import AuthScreen from './components/AuthScreen';
 import SearchModal from './components/SearchModal';
 import MoviesChart from './components/MoviesChart';
@@ -30,7 +31,8 @@ export default function App() {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    if (user) {
+      try { bind(); } catch {}
+      if (user) {
       setLoading(true);
       loadMovies(user.id)
         .then(data => {
@@ -228,108 +230,104 @@ export default function App() {
             <span>🎲</span> 随机抽一部
           </button>
           <button className="sidebar-footer-btn" onClick={() => setShareOpen(true)}>
-            <span>🔗</span> 分享
-          </button>
-          <button className="sidebar-footer-btn" onClick={handleExport}>
-            <span>📤</span> 导出
-          </button>
-          <button className="sidebar-footer-btn danger" onClick={handleReset}>
-            <span>🗑</span> 清空
-          </button>
-          <button className="sidebar-footer-btn danger" onClick={() => signOut()}>
-            <span>🚪</span> 退出
-          </button>
-        </div>
-      </aside>
-
-      {/* ===== CONTENT ===== */}
-      <main className="content">
-        <div className="content-header">
-          <h2>
-            {view === VIEWS.list ? '📋 电影列表' : view === VIEWS.poster ? '🖼 海报墙' : '📊 统计'}
-          </h2>
-          <div className="filters">
-            {view !== VIEWS.stats && (
-              <>
-                <select className="filter-select" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-                  <option value="all">全部状态</option>
-                  <option value="want">🌱 想看</option>
-                  <option value="watching">🍃 在看</option>
-                  <option value="watched">🌸 看过</option>
-                </select>
-                <select className="filter-select" value={filterYear} onChange={e => setFilterYear(e.target.value)}>
-                  <option value="">全部年份</option>
-                  {allYears.map(y => <option key={y} value={y}>{y}</option>)}
-                </select>
-                <select className="filter-select" value={filterGenre} onChange={e => setFilterGenre(e.target.value)}>
-                  <option value="">全部类型</option>
-                  {allGenres.map(g => <option key={g} value={g}>{g}</option>)}
-                </select>
-                <select className="filter-select" value={sortBy} onChange={e => setSortBy(e.target.value)}>
-                  <option value="added">按添加时间</option>
-                  <option value="year">按年份</option>
-                  <option value="rating">按评分</option>
-                </select>
-              </>
-            )}
-            {view === VIEWS.list && (
-              <button className="btn btn-primary" onClick={() => setSearchOpen(true)}>❀ 添加电影</button>
-            )}
-            {view === VIEWS.poster && (
-              <button className="btn btn-primary" onClick={() => setSearchOpen(true)}>❀ 添加电影</button>
-            )}
-          </div>
-        </div>
-
-        <div className="content-body">
-          {refreshing && (
-            <div className="refresh-indicator">⟳ 刷新中...</div>
-          )}
-          {loading ? (
-            <div className="empty"><p>⏳ 正在从云端加载...</p></div>
-          ) : view === VIEWS.list && (
-            filtered.length === 0 ? (
-              <div className="empty">
-                <span className="empty-flower">❀</span>
-                <p>还没有电影记录</p>
-                <p className="empty-hint">点击"添加电影"搜索并添加你的第一部电影</p>
+                  <span>🔗</span> 分享
+                </button>
+                <button className="sidebar-footer-btn" onClick={handleExport}>
+                  <span>📤</span> 导出
+                </button>
+                <button className="sidebar-footer-btn danger" onClick={handleReset}>
+                  <span>🗑</span> 清空
+                </button>
+                <button className="sidebar-footer-btn danger" onClick={() => signOut()}>
+                  <span>🚪</span> 退出
+                </button>
               </div>
-            ) : (
-              <div className="list">
-                {filtered.map(m => (
-                  <div key={m.id} className="card" onClick={() => setDetailId(m.id)}>
-                    <img className="card-poster" src={m.movie?.poster ? `https://image.tmdb.org/t/p/w185${m.movie.poster}` : ''} alt="" />
-                    <div className="card-info">
-                      <div className="card-title">{m.movie?.title || '未知'}</div>
-                      <div className="card-meta">{m.movie?.year} · {m.movie?.runtime}min</div>
-                      <div className="card-tags">
-                        <span className={`tag tag-${m.status}`}>
-                          {m.status === 'want' ? '🌱 想看' : m.status === 'watching' ? '🍃 在看' : '🌸 看过'}
-                        </span>
-                        {m.rating > 0 && <span className="tag tag-rating">{'★'.repeat(m.rating)}</span>}
-                      </div>
+            </aside>
+
+            <main className="content">
+              <div className="content-header">
+                <h2>
+                  {view === VIEWS.list ? '📋 电影列表' : view === VIEWS.poster ? '🖼 海报墙' : '📊 统计'}
+                </h2>
+                <div className="filters">
+                  {view !== VIEWS.stats && (
+                    <>
+                      <select className="filter-select" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
+                        <option value="all">全部状态</option>
+                        <option value="want">🌱 想看</option>
+                        <option value="watching">🍃 在看</option>
+                        <option value="watched">🌸 看过</option>
+                      </select>
+                      <select className="filter-select" value={filterYear} onChange={e => setFilterYear(e.target.value)}>
+                        <option value="">全部年份</option>
+                        {allYears.map(y => <option key={y} value={y}>{y}</option>)}
+                      </select>
+                      <select className="filter-select" value={filterGenre} onChange={e => setFilterGenre(e.target.value)}>
+                        <option value="">全部类型</option>
+                        {allGenres.map(g => <option key={g} value={g}>{g}</option>)}
+                      </select>
+                      <select className="filter-select" value={sortBy} onChange={e => setSortBy(e.target.value)}>
+                        <option value="added">按添加时间</option>
+                        <option value="year">按年份</option>
+                        <option value="rating">按评分</option>
+                      </select>
+                    </>
+                  )}
+                  <button className="btn btn-primary" onClick={() => setSearchOpen(true)}>
+                    ❀ 添加电影
+                  </button>
+                </div>
+              </div>
+
+              <div className="content-body">
+                {refreshing && (
+                  <div className="refresh-indicator">⟳ 刷新中...</div>
+                )}
+                {loading ? (
+                  <div className="empty"><p>⏳ 正在从云端加载...</p></div>
+                ) : view === VIEWS.list && (
+                  filtered.length === 0 ? (
+                    <div className="empty">
+                      <span className="empty-flower">❀</span>
+                      <p>还没有电影记录</p>
+                      <p className="empty-hint">点击"添加电影"搜索并添加你的第一部电影</p>
                     </div>
-                    <span className="card-flower">❀</span>
-                  </div>
-                ))}
+                  ) : (
+                    <div className="list">
+                      {filtered.map(m => (
+                        <div key={m.id} className="card" onClick={() => setDetailId(m.id)}>
+                          <img className="card-poster" src={m.movie?.poster ? `https://image.tmdb.org/t/p/w185${m.movie.poster}` : ''} alt="" />
+                          <div className="card-info">
+                            <div className="card-title">{m.movie?.title || '未知'}</div>
+                            <div className="card-meta">{m.movie?.year} · {m.movie?.runtime}min</div>
+                            <div className="card-tags">
+                              <span className={`tag tag-${m.status}`}>
+                                {m.status === 'want' ? '🌱 想看' : m.status === 'watching' ? '🍃 在看' : '🌸 看过'}
+                              </span>
+                              {m.rating > 0 && <span className="tag tag-rating">{'★'.repeat(m.rating)}</span>}
+                            </div>
+                          </div>
+                          <span className="card-flower">❀</span>
+                        </div>
+                      ))}
+                    </div>
+                  )
+                )}
+
+                {view === VIEWS.poster && (
+                  <PosterWall
+                    movies={filtered}
+                    onClick={(id) => setDetailId(id)}
+                  />
+                )}
+
+                {view === VIEWS.stats && (
+                  <MoviesChart movies={movies} />
+                )}
               </div>
-            )
-          )}
+            </main>
 
-          {view === VIEWS.poster && (
-            <PosterWall
-              movies={filtered}
-              onClick={(id) => setDetailId(id)}
-            />
-          )}
-
-          {view === VIEWS.stats && (
-            <MoviesChart movies={movies} />
-          )}
-        </div>
-      </main>
-
-      {modals}
+            {modals}
     </div>
   );
 }

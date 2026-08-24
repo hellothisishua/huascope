@@ -112,9 +112,16 @@ export default function App() {
 
   const handleImport = useCallback(async () => {
       if (!user) return;
-      const entries = await decodeShare(importCode);
-      if (entries.length === 0) { alert('无效的分享码'); return; }
+      let entries;
+      try {
+        entries = await decodeShare(importCode);
+      } catch (e) {
+        alert('网络错误：' + (e.message || '无法连接服务器'));
+        return;
+      }
+      if (!entries || entries.length === 0) { alert('无效的分享码'); return; }
       let ok = 0, fail = 0;
+      let lastErr = '';
       for (const e of entries) {
         try {
           const movie = {
@@ -136,14 +143,16 @@ export default function App() {
             ok++;
           } else {
             fail++;
+            lastErr = 'addMovieDb returned null';
           }
         } catch (err) {
           console.error('Import error:', e.id, err);
           fail++;
+          lastErr = err.message || JSON.stringify(err);
         }
       }
       if (fail > 0 && ok === 0) {
-        alert('导入失败，请检查网络或稍后重试');
+        alert('导入失败。错误：' + lastErr + '\n请打开浏览器 Console（F12）查看详细日志');
       } else if (ok > 0) {
         alert(`成功导入 ${ok} 部电影` + (fail > 0 ? `，${fail} 部失败` : ''));
       }

@@ -114,21 +114,42 @@ export default function App() {
       if (!user) return;
       const entries = await decodeShare(importCode);
       if (entries.length === 0) { alert('无效的分享码'); return; }
-    for (const e of entries) {
-      try {
-        const detail = await getMovie(e.id);
-        const movie = formatMovie(detail);
-        const entry = await addMovieDb(user.id, movie, e.status);
-        if (e.rating > 0) await updateMovieDb(user.id, e.id, { rating: e.rating });
-        setMovies(prev => {
-          const filtered = prev.filter(m => m.id !== entry.id);
-          return [{ ...entry, rating: e.rating || 0 }, ...filtered];
-        });
-      } catch {}
-    }
-    setImportOpen(false);
-    setImportCode('');
-  }, [user, importCode]);
+      let ok = 0, fail = 0;
+      for (const e of entries) {
+        try {
+          const movie = {
+            id: e.id,
+            title: e.title || '未知电影',
+            titleCn: e.titleCn || e.title || '未知电影',
+            year: e.year || '—',
+            poster: e.poster || null,
+            runtime: e.runtime || 0,
+            genres: Array.isArray(e.genres) ? e.genres : [],
+          };
+          const entry = await addMovieDb(user.id, movie, e.status || 'watched');
+          if (entry) {
+            if (e.rating > 0) await updateMovieDb(user.id, entry.id, { rating: e.rating });
+            setMovies(prev => {
+              const filtered = prev.filter(m => m.id !== entry.id);
+              return [{ ...entry, rating: e.rating || 0 }, ...filtered];
+            });
+            ok++;
+          } else {
+            fail++;
+          }
+        } catch (err) {
+          console.error('Import error:', e.id, err);
+          fail++;
+        }
+      }
+      if (fail > 0 && ok === 0) {
+        alert('导入失败，请检查网络或稍后重试');
+      } else if (ok > 0) {
+        alert(`成功导入 ${ok} 部电影` + (fail > 0 ? `，${fail} 部失败` : ''));
+      }
+      setImportOpen(false);
+      setImportCode('');
+    }, [user, importCode]);
 
   const allGenres = useMemo(() => {
     try {

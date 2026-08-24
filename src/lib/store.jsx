@@ -240,7 +240,12 @@ function generateStyleCode() {
 // 分享码 — 城市+天气中文短语，存 Supabase 查找
 export async function encodeShare(movies) {
   if (!movies || movies.length === 0) return '';
-  const payload = movies.map(m => ({ id: m.id, status: m.status, rating: m.rating }));
+  const payload = movies.map(m => ({
+    id: m.id, status: m.status, rating: m.rating,
+    title: m.movie?.title, titleCn: m.movie?.titleCn,
+    year: m.movie?.year, poster: m.movie?.poster,
+    runtime: m.movie?.runtime, genres: m.movie?.genres,
+  }));
   let code, tries = 0;
   do {
     code = generateStyleCode();

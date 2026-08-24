@@ -237,21 +237,28 @@ function generateStyleCode() {
   return `${city}的${weather}`;
 }
 
-// 短分享码 — 存 Supabase，生成6位字母数字码
+// 分享码 — 城市+天气中文短语，存 Supabase 查找
 export async function encodeShare(movies) {
   if (!movies || movies.length === 0) return '';
-  const payload = movies.map(m => ({
-    id: m.id, status: m.status, rating: m.rating
-  }));
-  const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const payload = movies.map(m => ({ id: m.id, status: m.status, rating: m.rating }));
+  let code, tries = 0;
+  do {
+    code = generateStyleCode();
+    tries++;
+  } while (tries < 20 && await shareCodeExists(code));
   const { error } = await supabase.from('share_code').insert({ code, data: payload });
   if (error) { console.error('save share_code:', error); return ''; }
   return code;
 }
 
+async function shareCodeExists(code) {
+  const { data } = await supabase.from('share_code').select('code').eq('code', code).single();
+  return !!data;
+}
+
 export async function decodeShare(code) {
   if (!code) return [];
-  const { data, error } = await supabase.from('share_code').select('data').eq('code', code.toUpperCase()).single();
+  const { data, error } = await supabase.from('share_code').select('data').eq('code', code).single();
   if (error || !data) return [];
   return data.data || [];
 }

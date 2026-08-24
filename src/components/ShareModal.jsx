@@ -57,28 +57,33 @@ export default function ShareModal({ movies, onClose }) {
             )}
           </div>
         ) : (
-          <div style={{textAlign:'center'}}>
-            <div style={{
-              fontSize:36, fontWeight:700, letterSpacing:'0.15em',
-              color:'var(--leaf-2)', marginBottom:16, fontFamily:'monospace'
-            }}>
-              {shareCode}
-            </div>
-            <button
-              className="btn btn-primary share-copy-btn"
-              onClick={handleCopy}
-            >
-              {copied ? '✅ 已复制' : '📋 复制分享码'}
-            </button>
-            <button
-              className="btn-text share-copy-btn"
-              onClick={handleGenerate}
-              style={{marginTop:8}}
-            >
-              重新生成
-            </button>
-          </div>
-        )}
+                  <div style={{textAlign:'center'}}>
+                    <div style={{
+                      fontSize:32, fontWeight:600,
+                      color:'var(--brown)', marginBottom:16,
+                      fontFamily:'"Noto Serif SC", serif',
+                      letterSpacing:'0.05em'
+                    }}>
+                      {shareCode}
+                    </div>
+                    <p style={{fontSize:13,color:'var(--txt2)',marginBottom:16}}>
+                      把这个短语发给朋友，对方在「导入」里输入即可
+                    </p>
+                    <button
+                      className="btn btn-primary share-copy-btn"
+                      onClick={handleCopy}
+                    >
+                      {copied ? '✅ 已复制' : '📋 复制短语'}
+                    </button>
+                    <button
+                      className="btn-text share-copy-btn"
+                      onClick={handleGenerate}
+                      style={{marginTop:8}}
+                    >
+                      重新生成
+                    </button>
+                  </div>
+                )}
       </div>
     </div>
   );

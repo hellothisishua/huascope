@@ -199,52 +199,51 @@ export default function App() {
   if (!user) return <AuthScreen />;
 
   const modals = (
-    <>
-      {searchOpen && (
-        <SearchModal
-          onClose={() => setSearchOpen(false)}
-          onSelect={handleAdd}
-          existingIds={movies.map(m => m.id)}
-          searchFn={searchMovies}
-        />
-      )}
-      {detailMovie && (
-        <MovieCard
-          isDetail
-          entry={detailMovie}
-          onClose={() => setDetailId(null)}
-          onUpdate={(updates) => handleUpdate(detailMovie.id, updates)}
-          onRemove={() => handleRemove(detailMovie.id)}
-        />
-      )}
-      {randomOpen && <RandomPick movies={movies} onClose={() => setRandomOpen(false)} />}
-      {shareOpen && <ShareModal movies={movies} onClose={() => setShareOpen(false)} />}
+      <>
+        {searchOpen && (
+          <SearchModal
+            onClose={() => setSearchOpen(false)}
+            onSelect={handleAdd}
+            existingIds={movies.map(m => m.id)}
+            searchFn={searchMovies}
+          />
+        )}
+        {detailMovie && (
+          <MovieCard
+            isDetail
+            entry={detailMovie}
+            onClose={() => setDetailId(null)}
+            onUpdate={(updates) => handleUpdate(detailMovie.id, updates)}
+            onRemove={() => handleRemove(detailMovie.id)}
+          />
+        )}
+        {randomOpen && <RandomPick movies={movies} onClose={() => setRandomOpen(false)} />}
+        {shareOpen && <ShareModal movies={movies} onClose={() => setShareOpen(false)} />}
 
-      {importOpen && (
-        <div className="overlay" role="dialog">
-          <div className="overlay-backdrop" onClick={() => setImportOpen(false)}></div>
-          <div className="modal">
-            <button className="modal-close" onClick={() => setImportOpen(false)}>x</button>
-            <h2>📥 导入分享码</h2>
-            <p style={{fontSize:13,color:'var(--txt2)',marginBottom:12}}>粘贴朋友分享给你的短码</p>
-            <input
-              className="search-input-modal"
-              value={importCode}
-              onChange={e => setImportCode(e.target.value.toUpperCase())}
-              placeholder="例如：A1B2C3"
-              maxLength={6}
-              style={{textTransform:'uppercase',letterSpacing:'0.2em',fontSize:18,textAlign:'center'}}
-            />
-            <button
-              className="btn btn-primary share-copy-btn"
-              onClick={handleImport}
-              style={{marginTop:12}}
-            >导入</button>
+        {importOpen && (
+          <div className="overlay" role="dialog">
+            <div className="overlay-backdrop" onClick={() => setImportOpen(false)}></div>
+            <div className="modal">
+              <button className="modal-close" onClick={() => setImportOpen(false)}>x</button>
+              <h2>📥 导入分享码</h2>
+              <p style={{fontSize:13,color:'var(--txt2)',marginBottom:12}}>粘贴朋友分享给你的短语</p>
+              <input
+                className="search-input-modal"
+                value={importCode}
+                onChange={e => setImportCode(e.target.value)}
+                placeholder="例如：柏林的雨"
+                style={{fontSize:16,textAlign:'center'}}
+              />
+              <button
+                className="btn btn-primary share-copy-btn"
+                onClick={handleImport}
+                style={{marginTop:12}}
+              >导入</button>
+            </div>
           </div>
-        </div>
-      )}
-          </>
-        );
+        )}
+      </>
+    );
 
         return (
           <div className="app">

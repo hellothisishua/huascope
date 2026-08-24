@@ -223,20 +223,35 @@ export async function removeMovieDb(userId, id) {
   }
 }
 
-// Share encoding
-export function encodeShare(movies) {
-  try {
-    const ids = movies.map(m => `${m.id}:${m.status}:${m.rating}`).join(',');
-    return btoa(encodeURIComponent(ids));
-  } catch { return ''; }
+// 地点+天气风格分享码生成器
+const CITIES = ['柏林','京都','巴黎','东京','纽约','伦敦','罗马','莫斯科','伊斯坦布尔','开罗','孟买','曼谷','首尔','马德里','阿姆斯特丹','维也纳','布拉格','赫尔辛基','里斯本','悉尼','墨西哥城','多伦多','圣保罗','约翰内斯堡','冰岛','挪威','苏格兰','威尔士','爱尔兰','葡萄牙','希腊','克罗地亚','保加利亚','爱沙尼亚','拉脱维亚','立陶宛','芬兰','瑞典','丹麦','格鲁吉亚','摩洛哥','秘鲁','智利','阿根廷','新西兰','马耳他','塞浦路斯','乌拉圭','哥斯达黎加'];
+const WEATHERS = ['雾','雨','晴','雪','风','雷','霾','霜','露','雹','冰雹','沙尘暴','龙卷风','极光','海雾','山雾','城市雾','田野雾','港口雾','沙漠风','草原风','海风','山风','峡谷风','极地风','信风','季风','台风','飓风','风暴','冰暴','冻雨','毛毛雨','太阳雨','雷阵雨','大雪','暴雪','小雪','中雪','阵雪','雨夹雪','晴间多云','多云','阴天','彩虹','晚霞','朝霞','日出','日落','正午','子夜','拂晓','黄昏','黎明','晨曦','夕照','薄暮','夜幕','星空','星云','彗星','陨石','极光弧','气辉','黄道光','银河','流星雨','日全食','月全食','蓝月','血月','超级月亮'];
+
+function pick(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
 }
 
-export function decodeShare(encoded) {
-  try {
-    const ids = decodeURIComponent(atob(encoded));
-    return ids.split(',').map(s => {
-      const [id, status, rating] = s.split(':');
-      return { id: Number(id), status, rating: Number(rating) };
-    }).filter(e => e.id > 0);
-  } catch { return []; }
+function generateStyleCode() {
+  const city = pick(CITIES);
+  const weather = pick(WEATHERS);
+  return `${city}的${weather}`;
+}
+
+// 短分享码 — 存 Supabase，生成6位字母数字码
+export async function encodeShare(movies) {
+  if (!movies || movies.length === 0) return '';
+  const payload = movies.map(m => ({
+    id: m.id, status: m.status, rating: m.rating
+  }));
+  const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const { error } = await supabase.from('share_code').insert({ code, data: payload });
+  if (error) { console.error('save share_code:', error); return ''; }
+  return code;
+}
+
+export async function decodeShare(code) {
+  if (!code) return [];
+  const { data, error } = await supabase.from('share_code').select('data').eq('code', code.toUpperCase()).single();
+  if (error || !data) return [];
+  return data.data || [];
 }

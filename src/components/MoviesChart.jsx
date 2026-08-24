@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useAuth, updateMovieDb } from '../lib/store.jsx';
 import { getMovie, formatMovie } from '../lib/tmdb';
 
-const MORANDI = ['#D4A5A5','#95B595','#B5B5D6','#C5B5D6','#D4B595','#A5C6A5','#C6A5B5','#8A9BAA'];
+const AC_COLORS = ['#6B9E4B','#E8954A','#7EB8D6','#E8A0A0','#D4B595','#B5A0C0'];
 
 export default function MoviesChart({ movies }) {
   const { user } = useAuth() || {};
@@ -74,7 +74,7 @@ export default function MoviesChart({ movies }) {
   if (!watched || watched.length === 0) {
     return (
       <div className="empty">
-        <span className="empty-flower">❀</span>
+        <span className="empty-flower">🍂</span>
         <p>还没有已看过的电影</p>
         <p className="empty-hint">标记几部看过这里会出现统计</p>
       </div>
@@ -88,28 +88,28 @@ export default function MoviesChart({ movies }) {
   return (
     <div className="stats">
       <div className="stats-hero">
-        <div className="stats-num">{watched.length}</div>
-        <div className="stats-label">部已看过</div>
-        <div className="stats-grid">
-          <div className="stat-cell">
-            <div className="stat-num">{(watched.reduce((s, m) => s + (Number(m.movie?.runtime) || 0), 0) / 60).toFixed(1)}h</div>
-            <div className="stat-label">总时长</div>
+        <div className="stats-hero-num">{watched.length}</div>
+        <div className="stats-hero-label">部已看过</div>
+        <div className="stats-hero-grid">
+          <div className="stat-mini">
+            <div className="stat-mini-num">{(watched.reduce((s, m) => s + (Number(m.movie?.runtime) || 0), 0) / 60).toFixed(1)}h</div>
+            <div className="stat-mini-label">总时长</div>
           </div>
-          <div className="stat-cell">
-            <div className="stat-num">{(watched.reduce((s, m) => s + (m.rating || 0), 0) / watched.length).toFixed(1)}</div>
-            <div className="stat-label">平均评分</div>
+          <div className="stat-mini">
+            <div className="stat-mini-num">{(watched.reduce((s, m) => s + (m.rating || 0), 0) / watched.length).toFixed(1)}</div>
+            <div className="stat-mini-label">平均评分</div>
           </div>
-          <div className="stat-cell">
-            <div className="stat-num">{yearlyData.length}</div>
-            <div className="stat-label">覆盖年份</div>
+          <div className="stat-mini">
+            <div className="stat-mini-num">{yearlyData.length}</div>
+            <div className="stat-mini-label">覆盖年份</div>
           </div>
         </div>
       </div>
 
       {monthlyData.length > 0 && (
-        <div className="stats-card">
+        <div className="stats-section">
           <h3>观影趋势</h3>
-          <div className="bars">
+          <div className="bars ac-leaf">
             {monthlyData.map(([month, count]) => (
               <div key={month} className="bar">
                 <div className="bar-label">{month}</div>
@@ -124,14 +124,14 @@ export default function MoviesChart({ movies }) {
       )}
 
       {genreData.length > 0 && (
-        <div className="stats-card">
+        <div className="stats-section">
           <h3>类型偏好</h3>
           <div className="genre-list">
             {genreData.slice(0, 8).map(([g, count], i) => (
               <div key={g} className="genre-row">
                 <div className="genre-name">{g}</div>
                 <div className="genre-track">
-                  <div className="genre-fill" style={{ width: `${(count / maxGenre) * 100}%`, background: MORANDI[i % MORANDI.length] }}></div>
+                  <div className="genre-fill" style={{ width: `${(count / maxGenre) * 100}%`, background: AC_COLORS[i % AC_COLORS.length] }}></div>
                 </div>
                 <div className="genre-count">{count}</div>
               </div>
@@ -141,14 +141,14 @@ export default function MoviesChart({ movies }) {
       )}
 
       {directorData.length > 0 && (
-        <div className="stats-card">
+        <div className="stats-section">
           <h3>导演榜</h3>
           <div className="genre-list">
             {directorData.slice(0, 6).map(([d, count], i) => (
               <div key={d} className="genre-row">
-                <div className="genre-name">{d}</div>
+                <div className="director-name">{d}</div>
                 <div className="genre-track">
-                  <div className="genre-fill" style={{ width: `${(count / maxDir) * 100}%`, background: MORANDI[i % MORANDI.length] }}></div>
+                  <div className="genre-fill" style={{ width: `${(count / maxDir) * 100}%`, background: AC_COLORS[i % AC_COLORS.length] }}></div>
                 </div>
                 <div className="genre-count">{count}</div>
               </div>
@@ -158,7 +158,7 @@ export default function MoviesChart({ movies }) {
       )}
 
       {yearlyData.length > 0 && (
-        <div className="stats-card">
+        <div className="stats-section">
           <h3>按年份</h3>
           <div className="genre-list">
             {yearlyData.map(([y, count], i) => {
@@ -167,7 +167,7 @@ export default function MoviesChart({ movies }) {
                 <div key={y} className="genre-row">
                   <div className="genre-name">{y}</div>
                   <div className="genre-track">
-                    <div className="genre-fill" style={{ width: `${(count / maxYear) * 100}%`, background: MORANDI[i % MORANDI.length] }}></div>
+                    <div className="genre-fill" style={{ width: `${(count / maxYear) * 100}%`, background: AC_COLORS[i % AC_COLORS.length] }}></div>
                   </div>
                   <div className="genre-count">{count}</div>
                 </div>

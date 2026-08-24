@@ -8,12 +8,17 @@ export default function ShareModal({ movies, onClose }) {
 
   const watchedMovies = movies.filter(m => m.status === 'watched');
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (watchedMovies.length === 0) return;
     setLoading(true);
-    const code = encodeShare(watchedMovies);
-    setShareCode(code);
-    setLoading(false);
+    try {
+      const code = await encodeShare(watchedMovies);
+      setShareCode(code);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCopy = () => {
@@ -28,7 +33,7 @@ export default function ShareModal({ movies, onClose }) {
       <div className="modal">
         <button className="modal-close" onClick={onClose}>x</button>
         <h2>🔗 分享观影清单</h2>
-        
+
         <p style={{fontSize:13,color:'var(--txt2)',marginBottom:12}}>
           已看过的电影：{watchedMovies.length} 部
         </p>
@@ -36,10 +41,10 @@ export default function ShareModal({ movies, onClose }) {
         {!shareCode ? (
           <div style={{textAlign:'center'}}>
             <p style={{fontSize:13,color:'var(--txt2)',marginBottom:16}}>
-              生成一个分享码，朋友导入后就能看到你的清单
+              生成一个短分享码，朋友输入后就能看到你的清单
             </p>
-            <button 
-              className="btn btn-primary share-copy-btn" 
+            <button
+              className="btn btn-primary share-copy-btn"
               onClick={handleGenerate}
               disabled={loading || watchedMovies.length === 0}
             >
@@ -52,21 +57,21 @@ export default function ShareModal({ movies, onClose }) {
             )}
           </div>
         ) : (
-          <div>
-            <textarea
-              className="share-input"
-              value={shareCode}
-              readOnly
-              rows={3}
-            />
-            <button 
-              className="btn btn-primary share-copy-btn" 
+          <div style={{textAlign:'center'}}>
+            <div style={{
+              fontSize:36, fontWeight:700, letterSpacing:'0.15em',
+              color:'var(--leaf-2)', marginBottom:16, fontFamily:'monospace'
+            }}>
+              {shareCode}
+            </div>
+            <button
+              className="btn btn-primary share-copy-btn"
               onClick={handleCopy}
             >
               {copied ? '✅ 已复制' : '📋 复制分享码'}
             </button>
-            <button 
-              className="btn-text share-copy-btn" 
+            <button
+              className="btn-text share-copy-btn"
               onClick={handleGenerate}
               style={{marginTop:8}}
             >

@@ -31,8 +31,8 @@ export default function App() {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-      try { bind(); } catch {}
-      if (user) {
+    try { bind(); } catch {}
+    if (user) {
       setLoading(true);
       loadMovies(user.id)
         .then(data => {
@@ -111,9 +111,9 @@ export default function App() {
   }, [movies]);
 
   const handleImport = useCallback(async () => {
-    if (!user) return;
-    const entries = decodeShare(importCode);
-    if (entries.length === 0) { alert('无效的分享码'); return; }
+      if (!user) return;
+      const entries = await decodeShare(importCode);
+      if (entries.length === 0) { alert('无效的分享码'); return; }
     for (const e of entries) {
       try {
         const detail = await getMovie(e.id);
@@ -198,39 +198,65 @@ export default function App() {
       )}
       {randomOpen && <RandomPick movies={movies} onClose={() => setRandomOpen(false)} />}
       {shareOpen && <ShareModal movies={movies} onClose={() => setShareOpen(false)} />}
-    </>
-  );
 
-  return (
-    <div className="app">
-      {/* ===== SIDEBAR ===== */}
-      <aside className="sidebar">
-        <div className="sidebar-header">
-          <div className="sidebar-logo">
-            <span className="flower">❀</span>
-            <h1>HuaScope</h1>
+      {importOpen && (
+        <div className="overlay" role="dialog">
+          <div className="overlay-backdrop" onClick={() => setImportOpen(false)}></div>
+          <div className="modal">
+            <button className="modal-close" onClick={() => setImportOpen(false)}>x</button>
+            <h2>📥 导入分享码</h2>
+            <p style={{fontSize:13,color:'var(--txt2)',marginBottom:12}}>粘贴朋友分享给你的短码</p>
+            <input
+              className="search-input-modal"
+              value={importCode}
+              onChange={e => setImportCode(e.target.value.toUpperCase())}
+              placeholder="例如：A1B2C3"
+              maxLength={6}
+              style={{textTransform:'uppercase',letterSpacing:'0.2em',fontSize:18,textAlign:'center'}}
+            />
+            <button
+              className="btn btn-primary share-copy-btn"
+              onClick={handleImport}
+              style={{marginTop:12}}
+            >导入</button>
           </div>
-          <div className="sidebar-user">{user.email?.split('@')[0] || '观影簿'}</div>
         </div>
+      )}
+          </>
+        );
 
-        <nav className="sidebar-nav">
-          <button className={`sidebar-nav-item ${view === VIEWS.list ? 'active' : ''}`} onClick={() => setView(VIEWS.list)}>
-            <span className="sidebar-nav-icon">📋</span> 电影列表
-          </button>
-          <button className={`sidebar-nav-item ${view === VIEWS.poster ? 'active' : ''}`} onClick={() => setView(VIEWS.poster)}>
-            <span className="sidebar-nav-icon">🖼</span> 海报墙
-          </button>
-          <button className={`sidebar-nav-item ${view === VIEWS.stats ? 'active' : ''}`} onClick={() => setView(VIEWS.stats)}>
-            <span className="sidebar-nav-icon">📊</span> 统计
-          </button>
-        </nav>
+        return (
+          <div className="app">
+            <aside className="sidebar">
+              <div className="sidebar-header">
+                <div className="sidebar-logo">
+                  <span className="flower">❀</span>
+                  <h1>HuaScope</h1>
+                </div>
+                <div className="sidebar-user">{user.email?.split('@')[0] || '观影簿'}</div>
+              </div>
 
-        <div className="sidebar-footer">
-          <button className="sidebar-footer-btn" onClick={() => setRandomOpen(true)}>
-            <span>🎲</span> 随机抽一部
-          </button>
-          <button className="sidebar-footer-btn" onClick={() => setShareOpen(true)}>
+              <nav className="sidebar-nav">
+                <button className={`sidebar-nav-item ${view === VIEWS.list ? 'active' : ''}`} onClick={() => setView(VIEWS.list)}>
+                  <span className="sidebar-nav-icon">📋</span> 电影列表
+                </button>
+                <button className={`sidebar-nav-item ${view === VIEWS.poster ? 'active' : ''}`} onClick={() => setView(VIEWS.poster)}>
+                  <span className="sidebar-nav-icon">🖼</span> 海报墙
+                </button>
+                <button className={`sidebar-nav-item ${view === VIEWS.stats ? 'active' : ''}`} onClick={() => setView(VIEWS.stats)}>
+                  <span className="sidebar-nav-icon">📊</span> 统计
+                </button>
+              </nav>
+
+              <div className="sidebar-footer">
+                <button className="sidebar-footer-btn" onClick={() => setRandomOpen(true)}>
+                  <span>🎲</span> 随机抽一部
+                </button>
+                <button className="sidebar-footer-btn" onClick={() => setShareOpen(true)}>
                   <span>🔗</span> 分享
+                </button>
+                <button className="sidebar-footer-btn" onClick={() => setImportOpen(true)}>
+                  <span>📥</span> 导入
                 </button>
                 <button className="sidebar-footer-btn" onClick={handleExport}>
                   <span>📤</span> 导出
@@ -244,90 +270,90 @@ export default function App() {
               </div>
             </aside>
 
-            <main className="content">
-              <div className="content-header">
-                <h2>
-                  {view === VIEWS.list ? '📋 电影列表' : view === VIEWS.poster ? '🖼 海报墙' : '📊 统计'}
-                </h2>
-                <div className="filters">
-                  {view !== VIEWS.stats && (
-                    <>
-                      <select className="filter-select" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-                        <option value="all">全部状态</option>
-                        <option value="want">🌱 想看</option>
-                        <option value="watching">🍃 在看</option>
-                        <option value="watched">🌸 看过</option>
-                      </select>
-                      <select className="filter-select" value={filterYear} onChange={e => setFilterYear(e.target.value)}>
-                        <option value="">全部年份</option>
-                        {allYears.map(y => <option key={y} value={y}>{y}</option>)}
-                      </select>
-                      <select className="filter-select" value={filterGenre} onChange={e => setFilterGenre(e.target.value)}>
-                        <option value="">全部类型</option>
-                        {allGenres.map(g => <option key={g} value={g}>{g}</option>)}
-                      </select>
-                      <select className="filter-select" value={sortBy} onChange={e => setSortBy(e.target.value)}>
-                        <option value="added">按添加时间</option>
-                        <option value="year">按年份</option>
-                        <option value="rating">按评分</option>
-                      </select>
-                    </>
-                  )}
-                  <button className="btn btn-primary" onClick={() => setSearchOpen(true)}>
-                    ❀ 添加电影
-                  </button>
-                </div>
+      <main className="content">
+        <div className="content-header">
+          <h2>
+            {view === VIEWS.list ? '📋 电影列表' : view === VIEWS.poster ? '🖼 海报墙' : '📊 统计'}
+          </h2>
+          <div className="filters">
+            {view !== VIEWS.stats && (
+              <>
+                <select className="filter-select" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
+                  <option value="all">全部状态</option>
+                  <option value="want">🌱 想看</option>
+                  <option value="watching">🍃 在看</option>
+                  <option value="watched">🌸 看过</option>
+                </select>
+                <select className="filter-select" value={filterYear} onChange={e => setFilterYear(e.target.value)}>
+                  <option value="">全部年份</option>
+                  {allYears.map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
+                <select className="filter-select" value={filterGenre} onChange={e => setFilterGenre(e.target.value)}>
+                  <option value="">全部类型</option>
+                  {allGenres.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+                <select className="filter-select" value={sortBy} onChange={e => setSortBy(e.target.value)}>
+                  <option value="added">按添加时间</option>
+                  <option value="year">按年份</option>
+                  <option value="rating">按评分</option>
+                </select>
+              </>
+            )}
+            <button className="btn btn-primary" onClick={() => setSearchOpen(true)}>
+              ❀ 添加电影
+            </button>
+          </div>
+        </div>
+
+        <div className="content-body">
+          {refreshing && (
+            <div className="refresh-indicator">⟳ 刷新中...</div>
+          )}
+          {loading ? (
+            <div className="empty"><p>⏳ 正在从云端加载...</p></div>
+          ) : view === VIEWS.list && (
+            filtered.length === 0 ? (
+              <div className="empty">
+                <span className="empty-flower">❀</span>
+                <p>还没有电影记录</p>
+                <p className="empty-hint">点击"添加电影"搜索并添加你的第一部电影</p>
               </div>
-
-              <div className="content-body">
-                {refreshing && (
-                  <div className="refresh-indicator">⟳ 刷新中...</div>
-                )}
-                {loading ? (
-                  <div className="empty"><p>⏳ 正在从云端加载...</p></div>
-                ) : view === VIEWS.list && (
-                  filtered.length === 0 ? (
-                    <div className="empty">
-                      <span className="empty-flower">❀</span>
-                      <p>还没有电影记录</p>
-                      <p className="empty-hint">点击"添加电影"搜索并添加你的第一部电影</p>
+            ) : (
+              <div className="list">
+                {filtered.map(m => (
+                  <div key={m.id} className="card" onClick={() => setDetailId(m.id)}>
+                    <img className="card-poster" src={m.movie?.poster ? `https://image.tmdb.org/t/p/w185${m.movie.poster}` : ''} alt="" />
+                    <div className="card-info">
+                      <div className="card-title">{m.movie?.title || '未知'}</div>
+                      <div className="card-meta">{m.movie?.year} · {m.movie?.runtime}min</div>
+                      <div className="card-tags">
+                        <span className={`tag tag-${m.status}`}>
+                          {m.status === 'want' ? '🌱 想看' : m.status === 'watching' ? '🍃 在看' : '🌸 看过'}
+                        </span>
+                        {m.rating > 0 && <span className="tag tag-rating">{'★'.repeat(m.rating)}</span>}
+                      </div>
                     </div>
-                  ) : (
-                    <div className="list">
-                      {filtered.map(m => (
-                        <div key={m.id} className="card" onClick={() => setDetailId(m.id)}>
-                          <img className="card-poster" src={m.movie?.poster ? `https://image.tmdb.org/t/p/w185${m.movie.poster}` : ''} alt="" />
-                          <div className="card-info">
-                            <div className="card-title">{m.movie?.title || '未知'}</div>
-                            <div className="card-meta">{m.movie?.year} · {m.movie?.runtime}min</div>
-                            <div className="card-tags">
-                              <span className={`tag tag-${m.status}`}>
-                                {m.status === 'want' ? '🌱 想看' : m.status === 'watching' ? '🍃 在看' : '🌸 看过'}
-                              </span>
-                              {m.rating > 0 && <span className="tag tag-rating">{'★'.repeat(m.rating)}</span>}
-                            </div>
-                          </div>
-                          <span className="card-flower">❀</span>
-                        </div>
-                      ))}
-                    </div>
-                  )
-                )}
-
-                {view === VIEWS.poster && (
-                  <PosterWall
-                    movies={filtered}
-                    onClick={(id) => setDetailId(id)}
-                  />
-                )}
-
-                {view === VIEWS.stats && (
-                  <MoviesChart movies={movies} />
-                )}
+                    <span className="card-flower">❀</span>
+                  </div>
+                ))}
               </div>
-            </main>
+            )
+          )}
 
-            {modals}
+          {view === VIEWS.poster && (
+            <PosterWall
+              movies={filtered}
+              onClick={(id) => setDetailId(id)}
+            />
+          )}
+
+          {view === VIEWS.stats && (
+            <MoviesChart movies={movies} />
+          )}
+        </div>
+      </main>
+
+      {modals}
     </div>
   );
 }
